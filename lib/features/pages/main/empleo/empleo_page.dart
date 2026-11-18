@@ -173,10 +173,16 @@ class _EmpleoPageState extends State<EmpleoPage> {
   Widget _landing() => LayoutBuilder(builder: (context, constraints) {
     final wide = constraints.maxWidth >= 850;
     return Scaffold(
+      drawer: wide ? null : Drawer(width: 310, backgroundColor: Colors.transparent, child: _mobileMenu(publicMenu: true)),
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         toolbarHeight: 76,
+        leading: wide ? null : Builder(builder: (menuContext) => IconButton(
+          tooltip: 'Abrir menú', icon: const Icon(Icons.menu_rounded, color: _ink, size: 29),
+          onPressed: () => Scaffold.of(menuContext).openDrawer(),
+        )),
+        titleSpacing: wide ? 16 : 0,
         title: InkWell(
           onTap: () => setState(() => publicSection = 'Inicio'),
           child: const Row(mainAxisSize: MainAxisSize.min, children: [
@@ -190,11 +196,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
             for (final item in ['Inicio', 'Vacantes', 'Para empresas', 'Planes'])
               TextButton(onPressed: () => setState(() => publicSection = item), child: Text(item)),
             const SizedBox(width: 12),
-          ] else
-            PopupMenuButton<String>(tooltip: 'Menú', icon: const Icon(Icons.menu),
-              onSelected: (value) => setState(() => publicSection = value),
-              itemBuilder: (_) => ['Inicio', 'Vacantes', 'Para empresas', 'Planes']
-                  .map((item) => PopupMenuItem(value: item, child: Text(item))).toList()),
+          ],
           Padding(padding: const EdgeInsets.only(right: 16, left: 6),
             child: FilledButton(onPressed: () => _openAuth(), child: const Text('Iniciar sesión'))),
         ],
@@ -444,8 +446,106 @@ class _EmpleoPageState extends State<EmpleoPage> {
         FilledButton(onPressed: () => _openAuth(isRegister: true), child: const Text('Comenzar gratis')),
       ]));
 
+  // Menú lateral móvil de Joblink, independiente de cualquier módulo anterior.
+  Widget _mobileMenu({required bool publicMenu}) {
+    final entries = publicMenu
+        ? <(String, IconData)>[
+            ('Inicio', Icons.home_outlined),
+            ('Vacantes', Icons.work_outline_rounded),
+            ('Para empresas', Icons.business_outlined),
+            ('Planes', Icons.workspace_premium_outlined),
+          ]
+        : companyAccount
+            ? <(String, IconData)>[
+                ('Inicio', Icons.dashboard_outlined),
+                ('Publicar vacante', Icons.add_circle_outline),
+                ('Mis vacantes', Icons.work_outline),
+                ('Candidatos', Icons.groups_outlined),
+                ('Mi empresa', Icons.business_outlined),
+              ]
+            : <(String, IconData)>[
+                ('Inicio', Icons.dashboard_outlined),
+                ('Vacantes', Icons.work_outline),
+                ('Postulaciones', Icons.assignment_outlined),
+                ('Guardadas', Icons.bookmark_outline),
+                ('Certificaciones', Icons.school_outlined),
+                ('Planes', Icons.workspace_premium_outlined),
+                ('Perfil', Icons.person_outline),
+              ];
+    return SafeArea(
+      top: false,
+      bottom: false,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topRight: Radius.circular(26), bottomRight: Radius.circular(26)),
+        ),
+        child: Column(children: [
+          const SizedBox(height: 60),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Row(children: [
+              Container(
+                width: 49, height: 49,
+                decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(15)),
+                child: const Icon(Icons.north_east_rounded, color: _blue, size: 31),
+              ),
+              const SizedBox(width: 11),
+              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Joblink', style: TextStyle(color: _ink, fontSize: 25, fontWeight: FontWeight.w900)),
+                Text('Tu futuro comienza aquí', style: TextStyle(fontSize: 11, color: Colors.black54)),
+              ])),
+              IconButton(tooltip: 'Cerrar menú', onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close_rounded)),
+            ]),
+          ),
+          const SizedBox(height: 22),
+          Expanded(child: ListView(padding: const EdgeInsets.symmetric(horizontal: 14), children: [
+            Padding(padding: const EdgeInsets.only(left: 14, bottom: 12), child: Text(
+              publicMenu ? 'EXPLORA JOBLINK' : companyAccount ? 'PANEL EMPRESARIAL' : 'MI ESPACIO',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2, color: Colors.black45),
+            )),
+            for (final item in entries) Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                leading: Icon(item.$2, color: (publicMenu ? publicSection : section) == item.$1 ? _blue : const Color(0xFF53617A)),
+                title: Text(item.$1, style: TextStyle(fontWeight: FontWeight.w700,
+                  color: (publicMenu ? publicSection : section) == item.$1 ? _blue : _ink)),
+                trailing: const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.black38),
+                selected: (publicMenu ? publicSection : section) == item.$1,
+                selectedTileColor: const Color(0xFFEAF0FF),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  setState(() { if (publicMenu) { publicSection = item.$1; } else { section = item.$1; } });
+                },
+              ),
+            ),
+          ])),
+          const Divider(height: 1),
+          Padding(padding: const EdgeInsets.all(16), child: SizedBox(width: double.infinity,
+            child: publicMenu
+              ? FilledButton.icon(
+                  onPressed: () { Navigator.of(context).pop(); _openAuth(); },
+                  icon: const Icon(Icons.login_rounded), label: const Text('Iniciar sesión'),
+                )
+              : OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    setState(() { logged = false; showAuth = false; publicSection = 'Inicio'; section = 'Inicio'; accountKey = ''; });
+                    _persist();
+                  },
+                  icon: const Icon(Icons.logout_rounded), label: const Text('Cerrar sesión'),
+                ),
+          )),
+          const SizedBox(height: 10),
+        ]),
+      ),
+    );
+  }
+
   Widget _login()=>Scaffold(appBar:AppBar(backgroundColor:Colors.white,leading:IconButton(tooltip:'Volver al inicio',icon:const Icon(Icons.arrow_back),onPressed:()=>setState(()=>showAuth=false)),title:const Text('Joblink',style:TextStyle(color:_blue,fontWeight:FontWeight.w900))),body:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(20),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:460),child:panel(child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[const Icon(Icons.trending_up_rounded,size:54,color:_blue),const SizedBox(height:12),const Text('Joblink',textAlign:TextAlign.center,style:TextStyle(fontSize:31,fontWeight:FontWeight.w900,color:_ink)),const Text('Conectamos talento joven con empresas',textAlign:TextAlign.center),const SizedBox(height:28),Text(register?'Crea tu cuenta':'Bienvenido de nuevo',style:const TextStyle(fontSize:22,fontWeight:FontWeight.bold)),const SizedBox(height:14),if(register)...[TextField(controller:fullName,decoration:const InputDecoration(labelText:'Nombre completo',border:OutlineInputBorder())),const SizedBox(height:12),if(companyAccount)...[TextField(controller:companyName,decoration:const InputDecoration(labelText:'Nombre de la empresa',border:OutlineInputBorder())),const SizedBox(height:12)]],TextField(controller:email,keyboardType:TextInputType.emailAddress,decoration:const InputDecoration(labelText:'Correo electrónico',border:OutlineInputBorder())),const SizedBox(height:12),TextField(controller:password,obscureText:true,decoration:const InputDecoration(labelText:'Contraseña',border:OutlineInputBorder())),const SizedBox(height:12),const Text('¿Cómo quieres ingresar?',style:TextStyle(fontWeight:FontWeight.w600)),const SizedBox(height:6),Row(children:[Expanded(child:ChoiceChip(label:const Text('Busco empleo'),selected:!companyAccount,onSelected:(_)=>setState(()=>companyAccount=false))),const SizedBox(width:12),Expanded(child:ChoiceChip(label:const Text('Soy empresa'),selected:companyAccount,onSelected:(_)=>setState(()=>companyAccount=true)))]),const SizedBox(height:18),button(register?'Crear cuenta':'Iniciar sesión',_signIn),const SizedBox(height:12),TextButton(onPressed:()=>setState(()=>register=!register),child:Text(register?'¿Ya tienes cuenta? Inicia sesión':'¿No tienes cuenta? Regístrate gratis')),const SizedBox(height:12),const Text('Demo visual · No ingreses contraseñas reales',textAlign:TextAlign.center,style:TextStyle(color:Colors.grey,fontSize:12))]))))));
-  Widget _home()=>LayoutBuilder(builder:(context,c){final wide=c.maxWidth>=850;return Scaffold(key:_homeScaffoldKey,appBar:AppBar(backgroundColor:Colors.white,title:const Text('Joblink ↗',style:TextStyle(fontWeight:FontWeight.w900,color:_blue)),actions:[if(wide)Text('Plan $planName'),const SizedBox(width:12),IconButton(tooltip:'Cerrar sesión',onPressed:(){setState((){logged=false;showAuth=false;publicSection='Inicio';section='Inicio';accountKey='';});_persist();},icon:const Icon(Icons.logout)),const SizedBox(width:12)]),drawer:wide?null:Drawer(child:companyAccount?_companyNav():_nav()),body:Row(children:[if(wide)SizedBox(width:235,child:companyAccount?_companyNav():_nav()),Expanded(child:SingleChildScrollView(padding:EdgeInsets.all(wide?30:16),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:1150),child:companyAccount?_companyContent():_content())))]),bottomNavigationBar:wide||companyAccount?null:NavigationBar(selectedIndex:['Inicio','Vacantes','Postulaciones','Perfil'].contains(section)?['Inicio','Vacantes','Postulaciones','Perfil'].indexOf(section):0,onDestinationSelected:(i)=>setState(()=>section=['Inicio','Vacantes','Postulaciones','Perfil'][i]),destinations:const [NavigationDestination(icon:Icon(Icons.home_outlined),label:'Inicio'),NavigationDestination(icon:Icon(Icons.work_outline),label:'Vacantes'),NavigationDestination(icon:Icon(Icons.send_outlined),label:'Solicitudes'),NavigationDestination(icon:Icon(Icons.person_outline),label:'Perfil')]));});
+  Widget _home()=>LayoutBuilder(builder:(context,c){final wide=c.maxWidth>=850;return Scaffold(key:_homeScaffoldKey,appBar:AppBar(backgroundColor:Colors.white,title:const Text('Joblink ↗',style:TextStyle(fontWeight:FontWeight.w900,color:_blue)),actions:[if(wide)Text('Plan $planName'),const SizedBox(width:12),IconButton(tooltip:'Cerrar sesión',onPressed:(){setState((){logged=false;showAuth=false;publicSection='Inicio';section='Inicio';accountKey='';});_persist();},icon:const Icon(Icons.logout)),const SizedBox(width:12)]),drawer:wide?null:Drawer(width:310,backgroundColor:Colors.transparent,child:_mobileMenu(publicMenu:false)),body:Row(children:[if(wide)SizedBox(width:235,child:companyAccount?_companyNav():_nav()),Expanded(child:SingleChildScrollView(padding:EdgeInsets.all(wide?30:16),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:1150),child:companyAccount?_companyContent():_content())))]),bottomNavigationBar:wide||companyAccount?null:NavigationBar(selectedIndex:['Inicio','Vacantes','Postulaciones','Perfil'].contains(section)?['Inicio','Vacantes','Postulaciones','Perfil'].indexOf(section):0,onDestinationSelected:(i)=>setState(()=>section=['Inicio','Vacantes','Postulaciones','Perfil'][i]),destinations:const [NavigationDestination(icon:Icon(Icons.home_outlined),label:'Inicio'),NavigationDestination(icon:Icon(Icons.work_outline),label:'Vacantes'),NavigationDestination(icon:Icon(Icons.send_outlined),label:'Solicitudes'),NavigationDestination(icon:Icon(Icons.person_outline),label:'Perfil')]));});
   Widget _nav()=>Container(color:Colors.white,child:SafeArea(child:ListView(padding:const EdgeInsets.all(12),children:[const SizedBox(height:15),for(final item in [('Inicio',Icons.dashboard_outlined),('Vacantes',Icons.work_outline),('Postulaciones',Icons.assignment_outlined),('Guardadas',Icons.bookmark_outline),('Certificaciones',Icons.school_outlined),('Planes',Icons.workspace_premium_outlined),('Perfil',Icons.person_outline)])ListTile(leading:Icon(item.$2),title:Text(item.$1),selected:section==item.$1,selectedTileColor:const Color(0xFFEAF0FF),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)),onTap:(){setState(()=>section=item.$1);if(_homeScaffoldKey.currentState?.isDrawerOpen ?? false){_homeScaffoldKey.currentState?.closeDrawer();}}),const Divider(),ListTile(title:Text('Hola, $name'),subtitle:Text('Plan $planName'),leading:const CircleAvatar(child:Icon(Icons.person)))])));
   Widget _content(){switch(section){case 'Vacantes':return _vacancies();case 'Postulaciones':return _jobCollection('Mis postulaciones',applied);case 'Guardadas':return _jobCollection('Vacantes guardadas',saved);case 'Certificaciones':return _certifications();case 'Planes':return _plans();case 'Perfil':return _profile();default:return _dashboard();}}
   Widget _heading(String title,String subtitle)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:29,fontWeight:FontWeight.w800,color:_ink)),const SizedBox(height:5),Text(subtitle,style:const TextStyle(color:Colors.black54)),const SizedBox(height:22)]);
