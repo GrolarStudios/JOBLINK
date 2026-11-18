@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
 
             return MaterialApp(
               debugShowCheckedModeBanner: false,
-              title: Globals.titleMain,
+              title: 'Joblink | Empleo joven',
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
               themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
