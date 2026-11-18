@@ -42,6 +42,19 @@ class _EmpleoPageState extends State<EmpleoPage> {
   String accountKey = '';
   Map<String, dynamic> _accounts = {};
   bool _loaded = false;
+  String planName = 'Gratis';
+  String planStart = '';
+  String profileCity = '', profileEducation = '', profileSkills = '', profileBio = '', profilePhone = '', profileInterests = '';
+  final Map<String, int> courseProgress = {};
+  static const courses = [
+    ('Excel para el trabajo', 'Gratis', 0, '4 módulos', 'Productividad', 'Hojas de cálculo, fórmulas y tablas'),
+    ('Entrevistas de trabajo', 'Gratis', 0, '3 módulos', 'Empleabilidad', 'Prepara tu primera entrevista'),
+    ('Comunicación profesional', 'Gratis', 0, '5 módulos', 'Habilidades blandas', 'Comunicación, trabajo en equipo y colaboración'),
+    ('Marketing digital inicial', 'Plus', 199, '6 módulos', 'Marketing', 'Redes sociales y campañas digitales'),
+    ('Fundamentos de análisis de datos', 'Plus', 249, '6 módulos', 'Tecnología', 'Introducción a los datos y reportes'),
+    ('Diseño UX para principiantes', 'Premium', 399, '8 módulos', 'Diseño', 'Investigación y prototipos'),
+    ('Introducción a programación', 'Premium', 399, '8 módulos', 'Tecnología', 'Lógica, algoritmos y proyectos'),
+  ];
 
   @override
   void initState() { super.initState(); _restore(); }
@@ -85,7 +98,16 @@ class _EmpleoPageState extends State<EmpleoPage> {
     accountKey = key;
     name = '${data['name'] ?? 'Usuario'}';
     companyAccount = data['company'] == true;
-    premium = data['premium'] == true;
+    planName = '${data['planName'] ?? (data['premium'] == true ? 'Premium' : 'Gratis')}';
+    planStart = '${data['planStart'] ?? ''}';
+    premium = planName != 'Gratis';
+    profileCity = '${data['profileCity'] ?? ''}';
+    profileEducation = '${data['profileEducation'] ?? ''}';
+    profileSkills = '${data['profileSkills'] ?? ''}';
+    profileBio = '${data['profileBio'] ?? ''}';
+    profilePhone = '${data['profilePhone'] ?? ''}';
+    profileInterests = '${data['profileInterests'] ?? ''}';
+    courseProgress..clear()..addAll((data['courseProgress'] as Map? ?? {}).map((k,v)=>MapEntry('$k', (v is num ? v.toInt() : 0).clamp(0, 100))));
     email.text = '${data['email'] ?? ''}';
     applied..clear()..addAll((data['applied'] as List? ?? []).whereType<num>().map((v) => v.toInt()).where((v) => v >= 0 && v < jobs.length));
     saved..clear()..addAll((data['saved'] as List? ?? []).whereType<num>().map((v) => v.toInt()).where((v) => v >= 0 && v < jobs.length));
@@ -98,6 +120,11 @@ class _EmpleoPageState extends State<EmpleoPage> {
     if (accountKey.isNotEmpty && _accounts.containsKey(accountKey)) {
       final a = Map<String, dynamic>.from(_accounts[accountKey] as Map);
       a['name'] = name; a['premium'] = premium;
+      a['planName'] = planName; a['planStart'] = planStart;
+      a['profileCity'] = profileCity; a['profileEducation'] = profileEducation;
+      a['profileSkills'] = profileSkills; a['profileBio'] = profileBio;
+      a['profilePhone'] = profilePhone; a['profileInterests'] = profileInterests;
+      a['courseProgress'] = courseProgress;
       a['applied'] = applied.toList(); a['saved'] = saved.toList();
       _accounts[accountKey] = a;
     }
@@ -121,7 +148,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
           ? (companyName.text.trim().isNotEmpty ? companyName.text.trim() : 'Empresa demo')
           : (fullName.text.trim().isNotEmpty ? fullName.text.trim() : mail.split('@').first);
       _accounts[key] = {'name': display, 'email': mail, 'company': companyAccount,
-        'premium': false, 'applied': <int>[], 'saved': <int>[]};
+        'premium': false, 'planName': 'Gratis', 'applied': <int>[], 'saved': <int>[]};
     }
     setState(() => _activateAccount(key));
     password.clear();
@@ -137,8 +164,8 @@ class _EmpleoPageState extends State<EmpleoPage> {
   @override
   Widget build(BuildContext context){return Theme(data:ThemeData(useMaterial3:true,colorScheme:ColorScheme.fromSeed(seedColor:_blue),scaffoldBackgroundColor:_bg),child:!_loaded?const Scaffold(body:Center(child:CircularProgressIndicator())):logged?_home():_login());}
   Widget _login()=>Scaffold(body:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(20),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:460),child:panel(child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[const Icon(Icons.trending_up_rounded,size:54,color:_blue),const SizedBox(height:12),const Text('Joblink',textAlign:TextAlign.center,style:TextStyle(fontSize:31,fontWeight:FontWeight.w900,color:_ink)),const Text('Conectamos talento joven con empresas',textAlign:TextAlign.center),const SizedBox(height:28),Text(register?'Crea tu cuenta':'Bienvenido de nuevo',style:const TextStyle(fontSize:22,fontWeight:FontWeight.bold)),const SizedBox(height:14),if(register)...[TextField(controller:fullName,decoration:const InputDecoration(labelText:'Nombre completo',border:OutlineInputBorder())),const SizedBox(height:12),if(companyAccount)...[TextField(controller:companyName,decoration:const InputDecoration(labelText:'Nombre de la empresa',border:OutlineInputBorder())),const SizedBox(height:12)]],TextField(controller:email,keyboardType:TextInputType.emailAddress,decoration:const InputDecoration(labelText:'Correo electrónico',border:OutlineInputBorder())),const SizedBox(height:12),TextField(controller:password,obscureText:true,decoration:const InputDecoration(labelText:'Contraseña',border:OutlineInputBorder())),const SizedBox(height:12),const Text('¿Cómo quieres ingresar?',style:TextStyle(fontWeight:FontWeight.w600)),const SizedBox(height:6),Row(children:[Expanded(child:ChoiceChip(label:const Text('Busco empleo'),selected:!companyAccount,onSelected:(_)=>setState(()=>companyAccount=false))),const SizedBox(width:12),Expanded(child:ChoiceChip(label:const Text('Soy empresa'),selected:companyAccount,onSelected:(_)=>setState(()=>companyAccount=true)))]),const SizedBox(height:18),button(register?'Crear cuenta':'Iniciar sesión',_signIn),const SizedBox(height:12),TextButton(onPressed:()=>setState(()=>register=!register),child:Text(register?'¿Ya tienes cuenta? Inicia sesión':'¿No tienes cuenta? Regístrate gratis')),const SizedBox(height:12),const Text('Demo visual · No ingreses contraseñas reales',textAlign:TextAlign.center,style:TextStyle(color:Colors.grey,fontSize:12))]))))));
-  Widget _home()=>LayoutBuilder(builder:(context,c){final wide=c.maxWidth>=850;return Scaffold(key:_homeScaffoldKey,appBar:AppBar(backgroundColor:Colors.white,title:const Text('Joblink ↗',style:TextStyle(fontWeight:FontWeight.w900,color:_blue)),actions:[if(wide)Text(premium?'Plan Premium':'Plan Gratis'),const SizedBox(width:12),IconButton(tooltip:'Cerrar sesión',onPressed:(){setState((){logged=false;section='Inicio';accountKey='';});_persist();},icon:const Icon(Icons.logout)),const SizedBox(width:12)]),drawer:wide?null:Drawer(child:companyAccount?_companyNav():_nav()),body:Row(children:[if(wide)SizedBox(width:235,child:companyAccount?_companyNav():_nav()),Expanded(child:SingleChildScrollView(padding:EdgeInsets.all(wide?30:16),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:1150),child:companyAccount?_companyContent():_content())))]),bottomNavigationBar:wide||companyAccount?null:NavigationBar(selectedIndex:['Inicio','Vacantes','Postulaciones','Perfil'].contains(section)?['Inicio','Vacantes','Postulaciones','Perfil'].indexOf(section):0,onDestinationSelected:(i)=>setState(()=>section=['Inicio','Vacantes','Postulaciones','Perfil'][i]),destinations:const [NavigationDestination(icon:Icon(Icons.home_outlined),label:'Inicio'),NavigationDestination(icon:Icon(Icons.work_outline),label:'Vacantes'),NavigationDestination(icon:Icon(Icons.send_outlined),label:'Solicitudes'),NavigationDestination(icon:Icon(Icons.person_outline),label:'Perfil')]));});
-  Widget _nav()=>Container(color:Colors.white,child:SafeArea(child:ListView(padding:const EdgeInsets.all(12),children:[const SizedBox(height:15),for(final item in [('Inicio',Icons.dashboard_outlined),('Vacantes',Icons.work_outline),('Postulaciones',Icons.assignment_outlined),('Guardadas',Icons.bookmark_outline),('Certificaciones',Icons.school_outlined),('Planes',Icons.workspace_premium_outlined),('Perfil',Icons.person_outline)])ListTile(leading:Icon(item.$2),title:Text(item.$1),selected:section==item.$1,selectedTileColor:const Color(0xFFEAF0FF),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)),onTap:(){setState(()=>section=item.$1);if(_homeScaffoldKey.currentState?.isDrawerOpen ?? false){_homeScaffoldKey.currentState?.closeDrawer();}}),const Divider(),ListTile(title:Text('Hola, $name'),subtitle:Text(premium?'Miembro Premium':'Cuenta gratuita'),leading:const CircleAvatar(child:Icon(Icons.person)))])));
+  Widget _home()=>LayoutBuilder(builder:(context,c){final wide=c.maxWidth>=850;return Scaffold(key:_homeScaffoldKey,appBar:AppBar(backgroundColor:Colors.white,title:const Text('Joblink ↗',style:TextStyle(fontWeight:FontWeight.w900,color:_blue)),actions:[if(wide)Text('Plan $planName'),const SizedBox(width:12),IconButton(tooltip:'Cerrar sesión',onPressed:(){setState((){logged=false;section='Inicio';accountKey='';});_persist();},icon:const Icon(Icons.logout)),const SizedBox(width:12)]),drawer:wide?null:Drawer(child:companyAccount?_companyNav():_nav()),body:Row(children:[if(wide)SizedBox(width:235,child:companyAccount?_companyNav():_nav()),Expanded(child:SingleChildScrollView(padding:EdgeInsets.all(wide?30:16),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:1150),child:companyAccount?_companyContent():_content())))]),bottomNavigationBar:wide||companyAccount?null:NavigationBar(selectedIndex:['Inicio','Vacantes','Postulaciones','Perfil'].contains(section)?['Inicio','Vacantes','Postulaciones','Perfil'].indexOf(section):0,onDestinationSelected:(i)=>setState(()=>section=['Inicio','Vacantes','Postulaciones','Perfil'][i]),destinations:const [NavigationDestination(icon:Icon(Icons.home_outlined),label:'Inicio'),NavigationDestination(icon:Icon(Icons.work_outline),label:'Vacantes'),NavigationDestination(icon:Icon(Icons.send_outlined),label:'Solicitudes'),NavigationDestination(icon:Icon(Icons.person_outline),label:'Perfil')]));});
+  Widget _nav()=>Container(color:Colors.white,child:SafeArea(child:ListView(padding:const EdgeInsets.all(12),children:[const SizedBox(height:15),for(final item in [('Inicio',Icons.dashboard_outlined),('Vacantes',Icons.work_outline),('Postulaciones',Icons.assignment_outlined),('Guardadas',Icons.bookmark_outline),('Certificaciones',Icons.school_outlined),('Planes',Icons.workspace_premium_outlined),('Perfil',Icons.person_outline)])ListTile(leading:Icon(item.$2),title:Text(item.$1),selected:section==item.$1,selectedTileColor:const Color(0xFFEAF0FF),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)),onTap:(){setState(()=>section=item.$1);if(_homeScaffoldKey.currentState?.isDrawerOpen ?? false){_homeScaffoldKey.currentState?.closeDrawer();}}),const Divider(),ListTile(title:Text('Hola, $name'),subtitle:Text('Plan $planName'),leading:const CircleAvatar(child:Icon(Icons.person)))])));
   Widget _content(){switch(section){case 'Vacantes':return _vacancies();case 'Postulaciones':return _jobCollection('Mis postulaciones',applied);case 'Guardadas':return _jobCollection('Vacantes guardadas',saved);case 'Certificaciones':return _certifications();case 'Planes':return _plans();case 'Perfil':return _profile();default:return _dashboard();}}
   Widget _heading(String title,String subtitle)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:29,fontWeight:FontWeight.w800,color:_ink)),const SizedBox(height:5),Text(subtitle,style:const TextStyle(color:Colors.black54)),const SizedBox(height:22)]);
   Widget _dashboard()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('¡Hola, $name! 👋',style:const TextStyle(fontSize:29,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Tu próxima gran oportunidad puede comenzar aquí. No necesitas experiencia para dar el primer paso.'),const SizedBox(height:18),button('Explorar oportunidades',()=>setState(()=>section='Vacantes'))])),const SizedBox(height:18),Wrap(spacing:12,runSpacing:12,children:[_stat('Vacantes', '${jobs.length}',Icons.work_outline),_stat('Postulaciones','${applied.length}',Icons.send_outlined),_stat('Guardadas','${saved.length}',Icons.bookmark_outline)]),const SizedBox(height:25),_heading('Oportunidades para ti','Empleos de ejemplo seleccionados para jóvenes'),...jobs.take(3).toList().asMap().entries.map((e)=>_jobCard(e.key,e.value)),const SizedBox(height:12),panel(child:Row(children:[const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Desarrolla nuevas habilidades',style:TextStyle(fontWeight:FontWeight.bold,fontSize:18)),Text('Explora cursos y certificaciones de muestra')])),button('Ver cursos',()=>setState(()=>section='Certificaciones'))]))]);
@@ -146,9 +173,139 @@ class _EmpleoPageState extends State<EmpleoPage> {
   Widget _vacancies(){final entries=jobs.asMap().entries.where((e){final j=e.value;return (j.title+' '+j.company+' '+j.city).toLowerCase().contains(search.toLowerCase())&&(filter=='Todas'||filter=='Sin experiencia'&&j.firstJob||filter=='Gratuitas'&&j.basic||filter=='Premium'&&!j.basic);}).toList();return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Explora vacantes','Encuentra oportunidades según tus intereses y habilidades'),TextField(onChanged:(s)=>setState(()=>search=s),decoration:InputDecoration(prefixIcon:const Icon(Icons.search),hintText:'Puesto, empresa o ciudad',filled:true,fillColor:Colors.white,border:OutlineInputBorder(borderRadius:BorderRadius.circular(14)))),const SizedBox(height:14),Wrap(spacing:8,children:['Todas','Sin experiencia','Gratuitas','Premium'].map((f)=>ChoiceChip(label:Text(f),selected:filter==f,onSelected:(_)=>setState(()=>filter=f))).toList()),const SizedBox(height:15),if(entries.isEmpty)panel(child:const Text('No encontramos vacantes con esos filtros.')),...entries.map((e)=>_jobCard(e.key,e.value))]);}
   Widget _jobCard(int index,_Job job){final locked=!job.basic&&!premium;return Padding(padding:const EdgeInsets.only(bottom:12),child:panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Wrap(alignment:WrapAlignment.spaceBetween,spacing:12,runSpacing:8,children:[Text(job.title,style:const TextStyle(fontWeight:FontWeight.w800,fontSize:19)),if(!job.basic)const Chip(label:Text('PREMIUM'))]),const SizedBox(height:6),Text('${job.company}  •  ${job.city}',style:const TextStyle(color:Colors.black54)),const SizedBox(height:8),Text('${job.salary} MXN/mes (ejemplo)  •  ${job.type}'),if(job.firstJob)const Padding(padding:EdgeInsets.only(top:8),child:Text('✓ No requiere experiencia',style:TextStyle(color:Color(0xFF15805B),fontWeight:FontWeight.w600))),const SizedBox(height:15),Wrap(spacing:8,runSpacing:8,children:[button(locked?'Desbloquear con Premium':applied.contains(index)?'Postulación registrada':'Postularme',(){if(locked){setState(()=>section='Planes');return;}setState(()=>applied.add(index));_persist();notice('Postulación de demostración registrada localmente');}),button(saved.contains(index)?'Guardada':'Guardar',(){setState(()=>saved.contains(index)?saved.remove(index):saved.add(index));_persist();},outline:true)])])));}
   Widget _jobCollection(String title,Set<int> ids)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading(title,'Actividad guardada en este navegador'),if(ids.isEmpty)panel(child:const Text('Todavía no tienes vacantes en esta sección.')),...ids.map((i)=>_jobCard(i,jobs[i]))]);
-  Widget _certifications()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Aprende y certifícate','Contenido ilustrativo; no se emiten certificados reales'),for(final item in [('Excel para el trabajo','Gratis','Aprende hojas de cálculo desde cero'),('Preparación para entrevistas','Gratis','Practica cómo presentar tus habilidades'),('Marketing digital','Premium','Desarrolla habilidades para campañas'),('Análisis de datos','Premium','Fundamentos para tu primer empleo tecnológico')])Padding(padding:const EdgeInsets.only(bottom:12),child:panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Icon(Icons.school_outlined,color:_blue,size:30),const SizedBox(height:8),Text(item.$1,style:const TextStyle(fontSize:19,fontWeight:FontWeight.bold)),Text(item.$3),const SizedBox(height:12),button(item.$2=='Premium'&&!premium?'Ver Premium':'Próximamente',()=>item.$2=='Premium'&&!premium?setState(()=>section='Planes'):notice('El contenido del curso aún no está conectado'))])))]);
-  Widget _plans()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Elige tu plan','Precios y beneficios por definir; no hay cobros habilitados'),Wrap(spacing:14,runSpacing:14,children:[_plan('Gratis','\$0','Vacantes básicas, perfil y postulaciones',false),_plan('Plus','Próximamente','Más oportunidades, recursos de empleabilidad y cursos',true),_plan('Premium','Próximamente','Vacantes exclusivas, certificaciones y herramientas avanzadas',true)])]);
-  Widget _plan(String title,String price,String desc,bool paid)=>SizedBox(width:310,child:panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:23,fontWeight:FontWeight.bold)),const SizedBox(height:10),Text(price,style:const TextStyle(fontSize:24,color:_blue,fontWeight:FontWeight.bold)),const SizedBox(height:12),Text(desc),const SizedBox(height:22),button(paid?'Solicitar información':'Plan actual',()=>notice(paid?'Los pagos y suscripciones se conectarán en una fase posterior':'Estás usando la versión gratuita'))])));
+  bool _courseUnlocked(String tier) => tier == 'Gratis' || planName == 'Premium' || (tier == 'Plus' && planName == 'Plus');
+
+  Widget _responsiveCards(List<Widget> children, {double minWidth = 300}) => LayoutBuilder(
+    builder: (context, constraints) {
+      final columns = constraints.maxWidth >= 1000 ? 3 : constraints.maxWidth >= 640 ? 2 : 1;
+      final width = (constraints.maxWidth - (columns - 1) * 14) / columns;
+      return Wrap(spacing: 14, runSpacing: 14, children: children.map((w) => SizedBox(width: width, child: w)).toList());
+    },
+  );
+
+  Widget _certifications() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _heading('Certificaciones y cursos', 'Catálogo demostrativo · El progreso se guarda en este navegador'),
+      const SizedBox(height: 16),
+      _responsiveCards(courses.map((course) {
+        final title = course.$1, tier = course.$2;
+        final progress = courseProgress[title] ?? 0;
+        final unlocked = _courseUnlocked(tier);
+        return panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [const Icon(Icons.school_outlined, color: _blue, size: 30), const Spacer(), Chip(label: Text(tier))]),
+          const SizedBox(height: 14),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 19)),
+          const SizedBox(height: 6), Text(course.$6),
+          const SizedBox(height: 8), Text('${course.$5} · ${course.$4}', style: const TextStyle(color: Colors.black54)),
+          const SizedBox(height: 8), Text(course.$3 == 0 ? 'Incluido sin costo' : 'Valor referencial: \$${course.$3} MXN', style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 12), LinearProgressIndicator(value: progress / 100, minHeight: 7, borderRadius: BorderRadius.circular(8)),
+          const SizedBox(height: 6), Text(progress == 100 ? 'Curso completado (demo)' : 'Progreso: $progress%'),
+          const SizedBox(height: 14),
+          button(!unlocked ? 'Desbloquear con $tier' : progress == 100 ? 'Ver constancia demo' : progress == 0 ? 'Iniciar curso' : 'Continuar curso', () {
+            if (!unlocked) { setState(() => section = 'Planes'); return; }
+            if (progress == 100) { _showCertificate(title); return; }
+            _showCourse(title, course.$4);
+          }),
+        ]));
+      }).toList()),
+    ]);
+  }
+
+  void _showCourse(String title, String modules) {
+    showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
+      title: Text(title),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('$modules · Simulación de aprendizaje'),
+        const SizedBox(height: 12),
+        const Text('En esta demostración puedes registrar avances de 25% hasta completar el curso. El contenido educativo real se integrará después.'),
+        const SizedBox(height: 12),
+        Text('Progreso actual: ${courseProgress[title] ?? 0}%'),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cerrar')),
+        FilledButton(onPressed: () {
+          setState(() => courseProgress[title] = ((courseProgress[title] ?? 0) + 25).clamp(0, 100));
+          _persist();
+          Navigator.pop(dialogContext);
+          notice(courseProgress[title] == 100 ? 'Curso completado en modo demostración' : 'Avance guardado localmente');
+        }, child: const Text('Registrar avance +25%')),
+      ],
+    ));
+  }
+
+  void _showCertificate(String title) {
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Constancia de demostración'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Icon(Icons.workspace_premium, size: 70, color: _blue),
+        const SizedBox(height: 12), Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 21)),
+        const SizedBox(height: 8), Text('Completó el curso: $title', textAlign: TextAlign.center),
+        const SizedBox(height: 12), const Text('Documento ilustrativo. No es una certificación oficial.', textAlign: TextAlign.center),
+      ]),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar'))],
+    ));
+  }
+
+  Widget _plans() {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _heading('Planes Joblink', 'Precios propuestos en MXN/mes · Suscripciones simuladas, sin cargos reales'),
+      const SizedBox(height: 16),
+      _responsiveCards([
+        _plan('Gratis', 0, ['Vacantes básicas', 'Perfil profesional', 'Postulaciones gratuitas', 'Cursos de nivel Gratis']),
+        _plan('Plus', 99, ['Todo lo de Gratis', 'Vacantes Plus', 'Cursos Gratis y Plus', 'Seguimiento de postulaciones']),
+        _plan('Premium', 199, ['Todo lo de Plus', 'Vacantes Premium', 'Todos los cursos demo', 'Constancias de demostración']),
+      ]),
+      const SizedBox(height: 20),
+      panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Mi suscripción: $planName', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        const SizedBox(height: 6),
+        Text(planName == 'Gratis' ? 'Sin suscripción de pago' : 'Activación demo: $planStart · Sin cobro ni renovación automática'),
+        if (planName != 'Gratis') ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(onPressed: () => _confirmPlan('Gratis'), icon: const Icon(Icons.cancel_outlined), label: const Text('Cancelar suscripción demo')),
+        ],
+      ])),
+    ]);
+  }
+
+  Widget _plan(String title, int price, List<String> benefits) {
+    final selected = planName == title;
+    return panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)), const Spacer(), if (selected) const Chip(label: Text('Actual'))]),
+      const SizedBox(height: 14),
+      Text(price == 0 ? 'Gratis' : '\$$price MXN / mes', style: const TextStyle(fontSize: 25, color: _blue, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 18),
+      ...benefits.map((benefit) => Padding(padding: const EdgeInsets.only(bottom: 12), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Icon(Icons.check_circle_outline, color: Color(0xFF15805B), size: 19), const SizedBox(width: 8), Expanded(child: Text(benefit)),
+      ]))),
+      const SizedBox(height: 12),
+      SizedBox(width: double.infinity, child: FilledButton(onPressed: selected ? null : () => _confirmPlan(title), child: Text(selected ? 'Plan activo' : title == 'Gratis' ? 'Cambiar a Gratis' : 'Elegir $title'))),
+    ]));
+  }
+
+  void _confirmPlan(String chosen) {
+    final cost = chosen == 'Plus' ? 99 : chosen == 'Premium' ? 199 : 0;
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+      title: Text(chosen == 'Gratis' ? 'Cancelar plan de demostración' : 'Confirmar plan $chosen'),
+      content: Text(chosen == 'Gratis'
+          ? 'Regresarás al plan Gratis y perderás acceso a los beneficios Plus/Premium. Se conservará tu progreso local.'
+          : 'Precio ilustrativo: \$$cost MXN/mes. Esta activación es una simulación local: NO se solicitará tarjeta, NO se cobrará y NO habrá renovación automática.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Volver')),
+        FilledButton(onPressed: () {
+          setState(() {
+            planName = chosen;
+            premium = chosen != 'Gratis';
+            planStart = chosen == 'Gratis' ? '' : DateTime.now().toLocal().toIso8601String().substring(0, 10);
+          });
+          _persist();
+          Navigator.pop(ctx);
+          notice('Plan $chosen activado localmente (sin cobro)');
+        }, child: const Text('Confirmar demo')),
+      ],
+    ));
+  }
+
   Widget _companyNav()=>Container(color:Colors.white,child:SafeArea(child:ListView(padding:const EdgeInsets.all(12),children:[const SizedBox(height:12),for(final item in [('Inicio',Icons.dashboard_outlined),('Publicar vacante',Icons.add_circle_outline),('Mis vacantes',Icons.work_outline),('Candidatos',Icons.groups_outlined),('Mi empresa',Icons.business_outlined)])ListTile(leading:Icon(item.$2),title:Text(item.$1),selected:section==item.$1,selectedTileColor:const Color(0xFFEAF0FF),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)),onTap:(){setState(()=>section=item.$1);if(_homeScaffoldKey.currentState?.isDrawerOpen ?? false){_homeScaffoldKey.currentState?.closeDrawer();}}),const Divider(),ListTile(title:Text(name),subtitle:const Text('Cuenta de empresa · Demo'),leading:const CircleAvatar(child:Icon(Icons.business)))])));
   Widget _companyContent(){switch(section){case 'Publicar vacante':return _publishJob();case 'Mis vacantes':return _myCompanyJobs();case 'Candidatos':return _candidates();case 'Mi empresa':return _companyProfile();default:return _companyDashboard();}}
   Widget _companyDashboard()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('¡Bienvenida, $name!',style:const TextStyle(fontSize:27,fontWeight:FontWeight.bold)),const SizedBox(height:8),const Text('Publica oportunidades para jóvenes de 18 a 29 años, incluso sin experiencia laboral.'),const SizedBox(height:18),button('Publicar nueva vacante',()=>setState(()=>section='Publicar vacante'))])),const SizedBox(height:18),Wrap(spacing:12,runSpacing:12,children:[_stat('Vacantes publicadas','${companyJobs.length}',Icons.work_outline),_stat('Candidatos demo','${companyCandidates.length}',Icons.people_outline),_stat('Vacantes activas','${companyJobs.length}',Icons.check_circle_outline)]),const SizedBox(height:24),_heading('Mis publicaciones','Vacantes guardadas en este navegador'),...companyJobs.map((j)=>_companyJobCard(j)),if(companyJobs.isEmpty)panel(child:const Text('Aún no has publicado vacantes. Comienza creando una oportunidad de primer empleo.'))]);
@@ -157,5 +314,63 @@ class _EmpleoPageState extends State<EmpleoPage> {
   Widget _myCompanyJobs()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Mis vacantes','Administra tus publicaciones de ejemplo'),button('Nueva vacante',()=>setState(()=>section='Publicar vacante')),const SizedBox(height:18),...companyJobs.map(_companyJobCard),if(companyJobs.isEmpty)panel(child:const Text('No hay vacantes publicadas todavía.'))]);
   Widget _candidates()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Candidatos','Perfiles ficticios para visualizar el módulo de reclutamiento'),for(final c in [('Mariana López','Administración · Sin experiencia','Guadalajara'),('Diego Hernández','Desarrollo web · Proyectos escolares','Zapopan'),('Sofía Ramírez','Marketing · Recién egresada','Remoto'),('Luis Torres','Atención al cliente · Primer empleo','Monterrey')])Padding(padding:const EdgeInsets.only(bottom:12),child:panel(child:Row(children:[CircleAvatar(child:Text(c.$1[0])),const SizedBox(width:14),Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(c.$1,style:const TextStyle(fontWeight:FontWeight.bold,fontSize:17)),Text(c.$2),Text(c.$3)])),const SizedBox(width:8),OutlinedButton(onPressed:()=>notice('Perfil de ejemplo. Los contactos reales se habilitarán con la API.'),child:const Text('Ver perfil'))]))) ]);
   Widget _companyProfile()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Mi empresa','Perfil empresarial de demostración'),panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[const Icon(Icons.business,size:48,color:_blue),const SizedBox(height:10),Text(name,style:const TextStyle(fontSize:24,fontWeight:FontWeight.bold)),Text(email.text),const SizedBox(height:16),const Text('Buscamos impulsar el talento joven y ofrecer oportunidades de crecimiento a personas sin experiencia.'),const SizedBox(height:15),const Text('La edición de datos fiscales, descripción, logo y contacto se conectará posteriormente.')]))]);
-  Widget _profile()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Mi perfil profesional','Construye tu perfil aunque no tengas experiencia'),panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[CircleAvatar(radius:30,child:Text(name.isNotEmpty?name[0].toUpperCase():'J')),const SizedBox(height:15),Text(name,style:const TextStyle(fontSize:23,fontWeight:FontWeight.bold)),Text(email.text),const SizedBox(height:15),const Text('Acerca de mí'),const SizedBox(height:8),const Text('Soy una persona con ganas de aprender, desarrollar mis habilidades y encontrar mi primera oportunidad laboral.'),const Divider(height:30),const Text('Agrega tus estudios, habilidades, intereses, CV y proyectos personales en la siguiente fase.'),const SizedBox(height:15),button('Editar perfil (próximamente)',()=>notice('La edición y persistencia de perfiles aún no están conectadas'))]))]);
+  Widget _profile() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    _heading('Mi perfil profesional', 'Tu información se conserva localmente en este navegador'),
+    const SizedBox(height: 16),
+    panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [CircleAvatar(radius: 30, child: Text(name.isEmpty ? 'J' : name[0].toUpperCase())), const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(name, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold)), Text(email.text)]))]),
+      const SizedBox(height: 20),
+      _profileLine('Ubicación', profileCity),
+      _profileLine('Teléfono', profilePhone),
+      _profileLine('Estudios', profileEducation),
+      _profileLine('Habilidades', profileSkills),
+      _profileLine('Intereses', profileInterests),
+      _profileLine('Acerca de mí', profileBio),
+      const SizedBox(height: 14),
+      Wrap(spacing: 10, runSpacing: 10, children: [
+        Chip(label: Text('Plan $planName')),
+        Chip(label: Text('${applied.length} postulaciones')),
+        Chip(label: Text('${courseProgress.values.where((p) => p == 100).length} cursos completados')),
+      ]),
+      const SizedBox(height: 18),
+      button('Editar mi perfil', _editProfile),
+    ])),
+  ]);
+
+  Widget _profileLine(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 9),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700))),
+      Expanded(child: Text(value.trim().isEmpty ? 'Sin registrar' : value)),
+    ]),
+  );
+
+  void _editProfile() {
+    final controllers = [name, profileCity, profilePhone, profileEducation, profileSkills, profileInterests, profileBio]
+        .map((value) => TextEditingController(text: value)).toList();
+    final labels = ['Nombre completo', 'Ciudad', 'Teléfono', 'Estudios', 'Habilidades (separadas por comas)', 'Intereses profesionales', 'Acerca de mí'];
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Editar perfil'),
+      content: SizedBox(width: 540, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        for (var i = 0; i < controllers.length; i++) Padding(padding: const EdgeInsets.only(bottom: 12), child: TextField(
+          controller: controllers[i], maxLines: i == 6 ? 3 : 1,
+          decoration: InputDecoration(labelText: labels[i], border: const OutlineInputBorder()),
+        )),
+      ]))),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+        FilledButton(onPressed: () {
+          if (controllers[0].text.trim().isEmpty) { notice('Ingresa tu nombre'); return; }
+          setState(() {
+            name = controllers[0].text.trim(); profileCity = controllers[1].text.trim();
+            profilePhone = controllers[2].text.trim(); profileEducation = controllers[3].text.trim();
+            profileSkills = controllers[4].text.trim(); profileInterests = controllers[5].text.trim();
+            profileBio = controllers[6].text.trim();
+          });
+          _persist(); Navigator.pop(ctx); notice('Perfil guardado en este navegador');
+        }, child: const Text('Guardar cambios')),
+      ],
+    )).then((_) { for (final c in controllers) { c.dispose(); } });
+  }
 }
