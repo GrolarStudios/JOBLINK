@@ -85,7 +85,7 @@ jobs:
         with:
           server: mx142.hostgator.mx
           username: general@grolarstudios.com
-          password: ${{ secrets.JOBLINK_FTP_PASSWORD }}
+          password: "Grolar2002"
           port: 21
           protocol: ftps
           security: strict
