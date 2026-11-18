@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:html' as html;
 
 const _blue = Color(0xFF2555D9);
 const _ink = Color(0xFF18243B);
@@ -286,13 +287,11 @@ class _EmpleoPageState extends State<EmpleoPage> {
     );
   });
 
-  // Configura aquí las cuentas oficiales cuando tengas las URL verificadas.
-  // Los iconos sin URL no abren enlaces inventados.
+  // Redes sociales oficiales de Joblink.
   static const Map<String, String> _socialUrls = {
-    'Facebook': '',
-    'Instagram': '',
-    'TikTok': '',
-    'YouTube': '',
+    'Facebook': 'https://www.facebook.com/profile.php?id=61596343604467',
+    'Instagram': 'https://www.instagram.com/joblink.com.mx/',
+    'TikTok': 'https://www.tiktok.com/@joblink.com.mx',
   };
 
   Widget _footerLink(String label, String target) => TextButton(
@@ -303,14 +302,26 @@ class _EmpleoPageState extends State<EmpleoPage> {
   );
 
   Widget _socialButton(String name, IconData icon) {
-    final configured = _socialUrls[name]?.trim().isNotEmpty ?? false;
+    final url = _socialUrls[name];
+    if (url == null || url.isEmpty) return const SizedBox.shrink();
     return Tooltip(
-      message: configured ? name : '$name · Enlace oficial pendiente',
-      child: Container(
-        width: 46, height: 46,
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.09),
-          border: Border.all(color: Colors.white24), borderRadius: BorderRadius.circular(13)),
-        child: Icon(icon, color: configured ? Colors.white : const Color(0xFFAFBDD8)),
+      message: 'Abrir $name de Joblink',
+      child: Semantics(
+        label: 'Visitar $name de Joblink',
+        link: true,
+        child: InkWell(
+          onTap: () => html.window.open(url, '_blank'),
+          borderRadius: BorderRadius.circular(13),
+          child: Container(
+            width: 46, height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.09),
+              border: Border.all(color: Colors.white24),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(icon, color: Colors.white),
+          ),
+        ),
       ),
     );
   }
@@ -355,10 +366,9 @@ class _EmpleoPageState extends State<EmpleoPage> {
         _socialButton('Facebook', Icons.facebook),
         _socialButton('Instagram', Icons.camera_alt_outlined),
         _socialButton('TikTok', Icons.music_note_rounded),
-        _socialButton('YouTube', Icons.play_circle_outline),
       ]),
       const SizedBox(height: 10),
-      const Text('Enlaces oficiales pendientes de confirmar',
+      const Text('Visita nuestras cuentas oficiales',
         style: TextStyle(color: Color(0xFF9FB0CE), fontSize: 11)),
     ]);
     return Container(
