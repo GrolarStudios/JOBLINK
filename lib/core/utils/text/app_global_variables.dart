@@ -1,0 +1,105 @@
+import 'package:flutter/widgets.dart';
+import '../../l10n/localizations.dart';
+
+class Globals {
+  static String appAuthor = "";
+  static String appVersion = "";
+  static String titleMain = "AYKO";
+  static String username = "";
+  static String password = "";
+  static String login = "";
+  static String incorrectUser = "";
+  static String errorConnection = "";
+  static String emptyUsername = "";
+  static String emptyPassword = "";
+  static String registerPrompt = "";
+  static String forgotPassword = "";
+  static String loadingData = "";
+  static String userNotRegister = "";
+  static String searchProducts = "";
+  static String modBlack = "";
+  static String theme = "";
+  static String profile = "";
+  static String demoUserName = "";
+  static String demoUserEmail = "";
+  static String personalInfo = "";
+  static String changePassword = "";
+  static String privacyPolicy = "";
+  static String termsConditions = "";
+  static String aboutApp = "";
+  static String logout = "";
+  static String notifications = "";
+  static String configNotifications = "";
+  static String pageNotFound = "";
+  static String notProductsFavorite = "";
+  static String notProductsCar = "";
+  static String page = "";
+  static String ofText = "";
+  static String notFoundNotifications = "";
+  static String seeMoreProducts = "";
+  static String products = "";
+  static String notData = "";
+  static String discount = "";
+  static String buyNow = "";
+  static String comments = "";
+  static String addComment = "";
+  static String sendFeedback = "";
+  static String user = "";
+  static String untitled = "";
+  static String DescriptionNotAvailable = "";
+  static String noImages = "";
+
+  static void initialize(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    if (localizations == null) {
+      throw Exception('Las localizaciones no están disponibles.');
+    }
+
+    appAuthor = localizations.translate('appAuthor');
+    appVersion = localizations.translate('appVersion');
+    titleMain = localizations.translate('titleMain');
+    username = localizations.translate('username');
+    password = localizations.translate('password');
+    login = localizations.translate('login');
+    incorrectUser = localizations.translate('incorrectUser');
+    errorConnection = localizations.translate('errorConnection');
+    emptyUsername = localizations.translate('emptyUsername');
+    emptyPassword = localizations.translate('emptyPassword');
+    registerPrompt = localizations.translate('registerPrompt');
+    forgotPassword = localizations.translate('forgotPassword');
+    loadingData = localizations.translate('loadingData');
+    userNotRegister = localizations.translate('userNotRegister');
+    searchProducts = localizations.translate('searchProducts');
+    modBlack = localizations.translate('modBlack');
+    theme = localizations.translate('theme');
+    profile = localizations.translate('profile');
+    demoUserName = localizations.translate('demoUserName');
+    demoUserEmail = localizations.translate('demoUserEmail');
+    personalInfo = localizations.translate('personalInfo');
+    changePassword = localizations.translate('changePassword');
+    privacyPolicy = localizations.translate('privacyPolicy');
+    termsConditions = localizations.translate('termsConditions');
+    aboutApp = localizations.translate('aboutApp');
+    logout = localizations.translate('logout');
+    notifications = localizations.translate('notifications');
+    configNotifications = localizations.translate('configNotifications');
+    pageNotFound = localizations.translate('pageNotFound');
+    notProductsCar = localizations.translate('notProductsCar');
+    notProductsFavorite = localizations.translate('notProductsFavorite');
+    page = localizations.translate('page');
+    ofText = localizations.translate('ofText');
+    notFoundNotifications = localizations.translate('notFoundNotifications');
+    seeMoreProducts = localizations.translate('seeMoreProducts');
+    products = localizations.translate('products');
+    notData = localizations.translate('notData');
+    discount = localizations.translate('discount');
+    buyNow = localizations.translate('buyNow');
+    comments = localizations.translate('comments');
+    addComment = localizations.translate('addComment');
+    sendFeedback = localizations.translate('sendFeedback');
+    user = localizations.translate('user');
+    untitled = localizations.translate('untitled');
+    DescriptionNotAvailable = localizations.translate('DescriptionNotAvailable');
+    noImages = localizations.translate('noImages');
+  }
+}

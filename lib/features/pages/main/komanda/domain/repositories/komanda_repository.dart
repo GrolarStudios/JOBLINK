@@ -1,0 +1,41 @@
+import '../entities/komanda_order.dart';
+import '../entities/komanda_product.dart';
+import '../entities/komanda_waiter.dart';
+import '../entities/waiter_call.dart';
+import '../entities/komanda_ticket_config.dart';
+import '../entities/komanda_category.dart';
+import '../entities/komanda_table.dart';
+import '../entities/komanda_cash_close.dart';
+import '../entities/komanda_option_catalog.dart';
+
+abstract class KomandaRepository {
+  Future<void> init();
+  Future<List<KomandaProduct>> getProducts();
+  Future<void> saveProduct(KomandaProduct product);
+  Future<void> deleteProduct(String productId);
+  Future<List<KomandaOrder>> getOrders();
+  Future<void> saveOrder(KomandaOrder order);
+  Future<Map<String, dynamic>> createManualTicket(double amount, double received);
+  Future<void> updateOrder(KomandaOrder order);
+  Future<void> updateOrderStatus(String orderId, KomandaOrderStatus status);
+  Future<void> assignWaiterToOrder(String orderId, KomandaWaiter waiter);
+  Future<List<WaiterCall>> getWaiterCalls();
+  Future<void> saveWaiterCall(WaiterCall call);
+  Future<void> updateWaiterCallStatus(String callId, WaiterCallStatus status, {KomandaWaiter? waiter});
+  Future<List<KomandaWaiter>> getWaiters();
+  Future<void> saveWaiter(KomandaWaiter waiter);
+  Future<void> deleteWaiter(String waiterId);
+  Future<List<KomandaCategory>> getCategories();
+  Future<void> saveCategory(KomandaCategory category);
+  Future<void> deleteCategory(String categoryId);
+  Future<List<KomandaOptionCatalog>> getOptionCatalogs();
+  Future<void> saveOptionCatalog(KomandaOptionCatalog catalog);
+  Future<void> deleteOptionCatalog(String catalogId);
+  Future<List<KomandaTable>> getTables();
+  Future<void> saveTable(KomandaTable table);
+  Future<void> deleteTable(String tableId);
+  Future<List<KomandaCashClose>> getCashClosures();
+  Future<void> saveCashClose(KomandaCashClose close);
+  Future<KomandaTicketConfig> getTicketConfig();
+  Future<void> saveTicketConfig(KomandaTicketConfig config);
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "723142799803",
+    "project_id": "trendyvibe-410ea",
+    "storage_bucket": "trendyvibe-410ea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:723142799803:android:5b5418a98f3e1e909d549e",
+        "android_client_info": {
+          "package_name": "com.example.trendy_vibe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDf0yfjgaEfrYBe8OHcC8g2Gbj6pEG9e8c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

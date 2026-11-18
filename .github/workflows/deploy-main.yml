@@ -1,0 +1,110 @@
+
+name: Publicar Joblink - Web
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: joblink-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Compilar y publicar Joblink
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      # 1. Descargar codigo de la rama main
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      # 2. Instalar Flutter
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # 3. Verificar Flutter
+      - name: Verificar Flutter
+        run: |
+          flutter --version
+
+      # 4. Limpiar e instalar dependencias
+      - name: Preparar Flutter
+        run: |
+          flutter clean
+          flutter pub get
+
+      # 5. Compilar Flutter Web Release
+      - name: Compilar Flutter Web
+        run: |
+          flutter build web \
+            --release \
+            --base-href /joblink/ \
+            --no-wasm-dry-run
+
+      # 6. Verificar archivos Web
+      - name: Verificar compilacion Web
+        run: |
+          test -f build/web/index.html
+          test -f build/web/flutter_bootstrap.js
+          echo "Flutter Web compilado correctamente"
+
+      # 7. Configurar cache del navegador
+      - name: Preparar archivos sin cache
+        run: |
+          cat > build/web/.htaccess <<'HTACCESS'
+          <IfModule mod_headers.c>
+            <FilesMatch "^(index\.html|flutter_bootstrap\.js|flutter_service_worker\.js)$">
+              Header set Cache-Control "no-cache, no-store, must-revalidate"
+              Header set Pragma "no-cache"
+              Header set Expires "0"
+            </FilesMatch>
+          </IfModule>
+          HTACCESS
+
+      # 8. Verificar conexion FTP
+      - name: Verificar conexion HostGator
+        run: |
+          echo "Verificando mx142.hostgator.mx..."
+          nc -vz -w 15 mx142.hostgator.mx 21
+          echo "Puerto FTP disponible"
+
+      # 9. Publicar Flutter Web
+      - name: Publicar Joblink Web
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: mx142.hostgator.mx
+          username: general@grolarstudios.com
+          password: ${{ secrets.JOBLINK_FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          security: strict
+          local-dir: ./build/web/
+          server-dir: ./joblink/
+          dangerous-clean-slate: false
+          log-level: standard
+
+      # 10. Confirmar publicacion
+      - name: Confirmar publicacion
+        run: |
+          echo "======================================"
+          echo "Joblink publicado correctamente"
+          echo "======================================"
+          echo "Servidor: mx142.hostgator.mx"
+          echo "Rama: main"
+          echo ""
+          echo "FRONTEND:"
+          echo "https://grolarstudios.com/joblink/"
+          echo ""
+          echo "API: Pendiente de integracion"
+          echo "======================================"
