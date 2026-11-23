@@ -1,3 +1,4 @@
+import 'visual_assets/joblink_banners.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -24,6 +25,8 @@ class _EmpleoPageState extends State<EmpleoPage> {
   bool logged = false, register = false, premium = false, companyAccount = false;
   bool showAuth = false;
   String publicSection = 'Inicio';
+  int _empresaSlide = 0;
+  final PageController _empresaController = PageController(viewportFraction: 0.90);
   int nextJobId = 100;
   final List<_Job> companyJobs = [];
   final Set<int> companyCandidates = {};
@@ -162,7 +165,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
   @override
   void dispose(){email.dispose();password.dispose();fullName.dispose();companyName.dispose();jobTitle.dispose();jobCity.dispose();jobSalary.dispose();jobType.dispose();super.dispose();}
   void notice(String s)=>ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(s)));
-  Widget panel({required Widget child})=>Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:Colors.white,borderRadius:BorderRadius.circular(20),border:Border.all(color:const Color(0xFFE7EBF3))),child:child);
+  Widget panel({required Widget child})=>Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:Colors.white,boxShadow:const [BoxShadow(color:Color(0x0C102C72),blurRadius:24,offset:Offset(0,9))],borderRadius:BorderRadius.circular(20),border:Border.all(color:const Color(0xFFE7EBF3))),child:child);
   Widget button(String label,VoidCallback onTap,{bool outline=false})=>OutlinedButton(onPressed:onTap,style:OutlinedButton.styleFrom(backgroundColor:outline?Colors.white:_blue,foregroundColor:outline?_blue:Colors.white,side:BorderSide(color:outline?_blue:Colors.transparent),padding:const EdgeInsets.symmetric(horizontal:20,vertical:17),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12))),child:Text(label));
   @override
   Widget build(BuildContext context){return Theme(data:ThemeData(useMaterial3:true,colorScheme:ColorScheme.fromSeed(seedColor:_blue),scaffoldBackgroundColor:_bg),child:!_loaded?const Scaffold(body:Center(child:CircularProgressIndicator())):logged?_home():(showAuth?_login():_landing()));}
@@ -224,7 +227,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
                       const SizedBox(height: 26),
                       Wrap(spacing: 12, runSpacing: 12, children: [
                         FilledButton.icon(onPressed: () => _openAuth(isRegister: true),
-                          icon: const Icon(Icons.person_add_alt_1), label: const Text('Crear cuenta gratis'),
+                          icon: const Icon(Icons.person_add_alt_1), label: const Text('Crear cuenta'),
                           style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: _blue, padding: const EdgeInsets.symmetric(horizontal: 23, vertical: 18))),
                         OutlinedButton.icon(onPressed: () => setState(() => publicSection = 'Vacantes'),
                           icon: const Icon(Icons.search), label: const Text('Explorar vacantes'),
@@ -243,6 +246,8 @@ class _EmpleoPageState extends State<EmpleoPage> {
                     ])),
                 ]),
               ),
+              const SizedBox(height: 38),
+              _empresaCarousel(),
               const SizedBox(height: 38),
               _landingTitle('Todo lo que necesitas para comenzar', 'Oportunidades reales empiezan con un primer paso.'),
               _landingGrid([
@@ -273,7 +278,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
             ] else ...[
               _landingTitle('Planes para crecer', 'Elige la experiencia que mejor se adapte a tus objetivos.'),
               _landingGrid([
-                _landingPlan('Gratis', '\$0', 'Vacantes básicas y cursos gratuitos'),
+                _landingPlan('Inicial', '\$50', 'Vacantes básicas y cursos de nivel inicial'),
                 _landingPlan('Plus', '\$99', 'Más oportunidades y cursos'),
                 _landingPlan('Premium', '\$199', 'Acceso completo a beneficios demo'),
               ]),
@@ -288,6 +293,61 @@ class _EmpleoPageState extends State<EmpleoPage> {
     );
   });
 
+
+  Widget _empresaCarousel() {
+    final companies = <(String, String, String, String)>[
+      ('Bimbo', 'Panificación y distribución', 'Imagen ilustrativa', JoblinkBanners.bimbo),
+      ('Coca-Cola', 'Bebidas y logística', 'Imagen ilustrativa', JoblinkBanners.coca_cola),
+      ('Tesla', 'Tecnología y movilidad', 'Imagen ilustrativa', JoblinkBanners.tesla),
+      ('Walmart', 'Comercio y atención al cliente', 'Imagen ilustrativa', JoblinkBanners.walmart),
+    ];
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _landingTitle('Empresas y oportunidades', 'Conoce empresas destacadas. Imágenes ilustrativas; no implican vacantes ni afiliación.'),
+      SizedBox(height: 275, child: PageView.builder(
+        controller: _empresaController,
+        itemCount: companies.length,
+        onPageChanged: (index) => setState(() => _empresaSlide = index),
+        itemBuilder: (context, index) {
+          final company = companies[index];
+          return Padding(padding: const EdgeInsets.only(right: 15), child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(fit: StackFit.expand, children: [
+              Image.memory(base64Decode(company.$4), fit: BoxFit.cover, gaplessPlayback: true),
+              const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(
+                begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                colors: [Colors.transparent, Color(0xE9101D3C)]))),
+              Positioned(left: 24, right: 20, bottom: 22, child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(company.$1, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white)),
+                  const SizedBox(height: 5),
+                  Text('${company.$2} · ${company.$3}', style: const TextStyle(color: Color(0xFFE3EBFF), fontSize: 14)),
+                ],
+              )),
+            ]),
+          ));
+        },
+      )),
+      const SizedBox(height: 12),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        IconButton(tooltip: 'Empresa anterior', onPressed: () => _empresaController.animateToPage(
+          (_empresaSlide - 1 + companies.length) % companies.length,
+          duration: const Duration(milliseconds: 320), curve: Curves.easeInOut),
+          icon: const Icon(Icons.chevron_left_rounded)),
+        for (var i = 0; i < companies.length; i++) Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: AnimatedContainer(duration: const Duration(milliseconds: 200),
+            height: 8, width: _empresaSlide == i ? 23 : 8,
+            decoration: BoxDecoration(color: _empresaSlide == i ? _blue : const Color(0xFFCAD5EA),
+              borderRadius: BorderRadius.circular(12))),
+        ),
+        IconButton(tooltip: 'Empresa siguiente', onPressed: () => _empresaController.animateToPage(
+          (_empresaSlide + 1) % companies.length,
+          duration: const Duration(milliseconds: 320), curve: Curves.easeInOut),
+          icon: const Icon(Icons.chevron_right_rounded)),
+      ]),
+    ]);
+  }
+
   // Redes sociales oficiales de Joblink.
   static const Map<String, String> _socialUrls = {
     'Facebook': 'https://www.facebook.com/profile.php?id=61596343604467',
@@ -296,7 +356,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
   };
 
   Widget _footerLink(String label, String target) => TextButton(
-    onPressed: () => setState(() => publicSection = target),
+    onPressed: () => setState(() { if (logged) { logged = false; showAuth = false; } publicSection = target; }),
     style: TextButton.styleFrom(foregroundColor: const Color(0xFFCBD6F2), padding: EdgeInsets.zero,
       alignment: Alignment.centerLeft),
     child: Text(label),
@@ -442,7 +502,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
           Text('¿Listo para dar el siguiente paso?', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 25, color: _ink)),
           SizedBox(height: 7), Text('Únete a Joblink y comienza a construir tu futuro profesional.'),
         ])),
-        FilledButton(onPressed: () => _openAuth(isRegister: true), child: const Text('Comenzar gratis')),
+        FilledButton(onPressed: () => _openAuth(isRegister: true), child: const Text('Comenzar ahora')),
       ]));
 
   // Menú lateral móvil de Joblink, independiente de cualquier módulo anterior.
@@ -543,8 +603,8 @@ class _EmpleoPageState extends State<EmpleoPage> {
     );
   }
 
-  Widget _login()=>Scaffold(appBar:AppBar(backgroundColor:Colors.white,leading:IconButton(tooltip:'Volver al inicio',icon:const Icon(Icons.arrow_back),onPressed:()=>setState(()=>showAuth=false)),title:const Text('Joblink',style:TextStyle(color:_blue,fontWeight:FontWeight.w900))),body:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(20),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:460),child:panel(child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[const Icon(Icons.trending_up_rounded,size:54,color:_blue),const SizedBox(height:12),const Text('Joblink',textAlign:TextAlign.center,style:TextStyle(fontSize:31,fontWeight:FontWeight.w900,color:_ink)),const Text('Conectamos talento joven con empresas',textAlign:TextAlign.center),const SizedBox(height:28),Text(register?'Crea tu cuenta':'Bienvenido de nuevo',style:const TextStyle(fontSize:22,fontWeight:FontWeight.bold)),const SizedBox(height:14),if(register)...[TextField(controller:fullName,decoration:const InputDecoration(labelText:'Nombre completo',border:OutlineInputBorder())),const SizedBox(height:12),if(companyAccount)...[TextField(controller:companyName,decoration:const InputDecoration(labelText:'Nombre de la empresa',border:OutlineInputBorder())),const SizedBox(height:12)]],TextField(controller:email,keyboardType:TextInputType.emailAddress,decoration:const InputDecoration(labelText:'Correo electrónico',border:OutlineInputBorder())),const SizedBox(height:12),TextField(controller:password,obscureText:true,decoration:const InputDecoration(labelText:'Contraseña',border:OutlineInputBorder())),const SizedBox(height:12),const Text('¿Cómo quieres ingresar?',style:TextStyle(fontWeight:FontWeight.w600)),const SizedBox(height:6),Row(children:[Expanded(child:ChoiceChip(label:const Text('Busco empleo'),selected:!companyAccount,onSelected:(_)=>setState(()=>companyAccount=false))),const SizedBox(width:12),Expanded(child:ChoiceChip(label:const Text('Soy empresa'),selected:companyAccount,onSelected:(_)=>setState(()=>companyAccount=true)))]),const SizedBox(height:18),button(register?'Crear cuenta':'Iniciar sesión',_signIn),const SizedBox(height:12),TextButton(onPressed:()=>setState(()=>register=!register),child:Text(register?'¿Ya tienes cuenta? Inicia sesión':'¿No tienes cuenta? Regístrate gratis')),const SizedBox(height:12),const Text('Demo visual · No ingreses contraseñas reales',textAlign:TextAlign.center,style:TextStyle(color:Colors.grey,fontSize:12))]))))));
-  Widget _home()=>LayoutBuilder(builder:(context,c){final wide=c.maxWidth>=850;return Scaffold(key:_homeScaffoldKey,appBar:AppBar(backgroundColor:Colors.white,title:wide?const Text('Joblink ↗',style:TextStyle(fontWeight:FontWeight.w900,color:_blue)):null,actions:wide?[Text('Plan $planName'),const SizedBox(width:12),IconButton(tooltip:'Cerrar sesión',onPressed:(){setState((){logged=false;showAuth=false;publicSection='Inicio';section='Inicio';accountKey='';});_persist();},icon:const Icon(Icons.logout)),const SizedBox(width:12)]:const []),drawer:wide?null:Drawer(width:310,backgroundColor:Colors.transparent,child:_mobileMenu(publicMenu:false)),body:Row(children:[if(wide)SizedBox(width:235,child:companyAccount?_companyNav():_nav()),Expanded(child:SingleChildScrollView(padding:EdgeInsets.all(wide?30:16),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:1150),child:companyAccount?_companyContent():_content())))]),bottomNavigationBar:wide||companyAccount?null:NavigationBar(selectedIndex:['Inicio','Vacantes','Postulaciones','Perfil'].contains(section)?['Inicio','Vacantes','Postulaciones','Perfil'].indexOf(section):0,onDestinationSelected:(i)=>setState(()=>section=['Inicio','Vacantes','Postulaciones','Perfil'][i]),destinations:const [NavigationDestination(icon:Icon(Icons.home_outlined),label:'Inicio'),NavigationDestination(icon:Icon(Icons.work_outline),label:'Vacantes'),NavigationDestination(icon:Icon(Icons.send_outlined),label:'Solicitudes'),NavigationDestination(icon:Icon(Icons.person_outline),label:'Perfil')]));});
+  Widget _login()=>Scaffold(appBar:AppBar(backgroundColor:Colors.white,leading:IconButton(tooltip:'Volver al inicio',icon:const Icon(Icons.arrow_back),onPressed:()=>setState(()=>showAuth=false)),title:const Text('Joblink',style:TextStyle(color:_blue,fontWeight:FontWeight.w900))),body:SingleChildScrollView(padding:const EdgeInsets.all(20),child:Column(children:[Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:460),child:panel(child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.stretch,children:[const Icon(Icons.trending_up_rounded,size:54,color:_blue),const SizedBox(height:12),const Text('Joblink',textAlign:TextAlign.center,style:TextStyle(fontSize:31,fontWeight:FontWeight.w900,color:_ink)),const Text('Conectamos talento joven con empresas',textAlign:TextAlign.center),const SizedBox(height:28),Text(register?'Crea tu cuenta':'Bienvenido de nuevo',style:const TextStyle(fontSize:22,fontWeight:FontWeight.bold)),const SizedBox(height:14),if(register)...[TextField(controller:fullName,decoration:const InputDecoration(labelText:'Nombre completo',border:OutlineInputBorder())),const SizedBox(height:12),if(companyAccount)...[TextField(controller:companyName,decoration:const InputDecoration(labelText:'Nombre de la empresa',border:OutlineInputBorder())),const SizedBox(height:12)]],TextField(controller:email,keyboardType:TextInputType.emailAddress,decoration:const InputDecoration(labelText:'Correo electrónico',border:OutlineInputBorder())),const SizedBox(height:12),TextField(controller:password,obscureText:true,decoration:const InputDecoration(labelText:'Contraseña',border:OutlineInputBorder())),const SizedBox(height:12),const Text('¿Cómo quieres ingresar?',style:TextStyle(fontWeight:FontWeight.w600)),const SizedBox(height:6),Row(children:[Expanded(child:ChoiceChip(label:const Text('Busco empleo'),selected:!companyAccount,onSelected:(_)=>setState(()=>companyAccount=false))),const SizedBox(width:12),Expanded(child:ChoiceChip(label:const Text('Soy empresa'),selected:companyAccount,onSelected:(_)=>setState(()=>companyAccount=true)))]),const SizedBox(height:18),button(register?'Crear cuenta':'Iniciar sesión',_signIn),const SizedBox(height:12),TextButton(onPressed:()=>setState(()=>register=!register),child:Text(register?'¿Ya tienes cuenta? Inicia sesión':'¿No tienes cuenta? Regístrate')),const SizedBox(height:12),const Text('Demo visual · No ingreses contraseñas reales',textAlign:TextAlign.center,style:TextStyle(color:Colors.grey,fontSize:12))])))),const SizedBox(height:40),_corporateFooter()]))) ;
+  Widget _home()=>LayoutBuilder(builder:(context,c){final wide=c.maxWidth>=850;return Scaffold(key:_homeScaffoldKey,appBar:AppBar(backgroundColor:Colors.white,title:wide?const Text('Joblink ↗',style:TextStyle(fontWeight:FontWeight.w900,color:_blue)):null,actions:wide?[Text('Plan $planName'),const SizedBox(width:12),IconButton(tooltip:'Cerrar sesión',onPressed:(){setState((){logged=false;showAuth=false;publicSection='Inicio';section='Inicio';accountKey='';});_persist();},icon:const Icon(Icons.logout)),const SizedBox(width:12)]:const []),drawer:wide?null:Drawer(width:310,backgroundColor:Colors.transparent,child:_mobileMenu(publicMenu:false)),body:Row(children:[if(wide)SizedBox(width:235,child:companyAccount?_companyNav():_nav()),Expanded(child:SingleChildScrollView(padding:EdgeInsets.all(wide?30:16),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:1150),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[companyAccount?_companyContent():_content(),const SizedBox(height:40),_corporateFooter()]))))]),bottomNavigationBar:wide||companyAccount?null:NavigationBar(selectedIndex:['Inicio','Vacantes','Postulaciones','Perfil'].contains(section)?['Inicio','Vacantes','Postulaciones','Perfil'].indexOf(section):0,onDestinationSelected:(i)=>setState(()=>section=['Inicio','Vacantes','Postulaciones','Perfil'][i]),destinations:const [NavigationDestination(icon:Icon(Icons.home_outlined),label:'Inicio'),NavigationDestination(icon:Icon(Icons.work_outline),label:'Vacantes'),NavigationDestination(icon:Icon(Icons.send_outlined),label:'Solicitudes'),NavigationDestination(icon:Icon(Icons.person_outline),label:'Perfil')]));});
   Widget _nav()=>Container(color:Colors.white,child:SafeArea(child:ListView(padding:const EdgeInsets.all(12),children:[const SizedBox(height:15),for(final item in [('Inicio',Icons.dashboard_outlined),('Vacantes',Icons.work_outline),('Postulaciones',Icons.assignment_outlined),('Guardadas',Icons.bookmark_outline),('Certificaciones',Icons.school_outlined),('Planes',Icons.workspace_premium_outlined),('Perfil',Icons.person_outline)])ListTile(leading:Icon(item.$2),title:Text(item.$1),selected:section==item.$1,selectedTileColor:const Color(0xFFEAF0FF),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(12)),onTap:(){setState(()=>section=item.$1);if(_homeScaffoldKey.currentState?.isDrawerOpen ?? false){_homeScaffoldKey.currentState?.closeDrawer();}}),const Divider(),ListTile(title:Text('Hola, $name'),subtitle:Text('Plan $planName'),leading:const CircleAvatar(child:Icon(Icons.person)))])));
   Widget _content(){switch(section){case 'Vacantes':return _vacancies();case 'Postulaciones':return _jobCollection('Mis postulaciones',applied);case 'Guardadas':return _jobCollection('Vacantes guardadas',saved);case 'Certificaciones':return _certifications();case 'Planes':return _plans();case 'Perfil':return _profile();default:return _dashboard();}}
   Widget _heading(String title,String subtitle)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:29,fontWeight:FontWeight.w800,color:_ink)),const SizedBox(height:5),Text(subtitle,style:const TextStyle(color:Colors.black54)),const SizedBox(height:22)]);
@@ -552,7 +612,31 @@ class _EmpleoPageState extends State<EmpleoPage> {
   Widget _stat(String title,String value,IconData icon)=>SizedBox(width:190,child:panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(icon,color:_blue),const SizedBox(height:12),Text(value,style:const TextStyle(fontSize:26,fontWeight:FontWeight.bold)),Text(title)])));
   Widget _vacancies(){final entries=jobs.asMap().entries.where((e){final j=e.value;return (j.title+' '+j.company+' '+j.city).toLowerCase().contains(search.toLowerCase())&&(filter=='Todas'||filter=='Sin experiencia'&&j.firstJob||filter=='Gratuitas'&&j.basic||filter=='Premium'&&!j.basic);}).toList();return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Explora vacantes','Encuentra oportunidades según tus intereses y habilidades'),TextField(onChanged:(s)=>setState(()=>search=s),decoration:InputDecoration(prefixIcon:const Icon(Icons.search),hintText:'Puesto, empresa o ciudad',filled:true,fillColor:Colors.white,border:OutlineInputBorder(borderRadius:BorderRadius.circular(14)))),const SizedBox(height:14),Wrap(spacing:8,children:['Todas','Sin experiencia','Gratuitas','Premium'].map((f)=>ChoiceChip(label:Text(f),selected:filter==f,onSelected:(_)=>setState(()=>filter=f))).toList()),const SizedBox(height:15),if(entries.isEmpty)panel(child:const Text('No encontramos vacantes con esos filtros.')),_responsiveCards(entries.map((e)=>_jobCard(e.key,e.value)).toList())]);}
   Widget _jobCard(int index,_Job job){final locked=!job.basic&&!premium;return Padding(padding:const EdgeInsets.only(bottom:12),child:panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Wrap(alignment:WrapAlignment.spaceBetween,spacing:12,runSpacing:8,children:[Text(job.title,style:const TextStyle(fontWeight:FontWeight.w800,fontSize:19)),if(!job.basic)const Chip(label:Text('PREMIUM'))]),const SizedBox(height:6),Text('${job.company}  •  ${job.city}',style:const TextStyle(color:Colors.black54)),const SizedBox(height:8),Text('${job.salary} MXN/mes (ejemplo)  •  ${job.type}'),if(job.firstJob)const Padding(padding:EdgeInsets.only(top:8),child:Text('✓ No requiere experiencia',style:TextStyle(color:Color(0xFF15805B),fontWeight:FontWeight.w600))),const SizedBox(height:15),Wrap(spacing:8,runSpacing:8,children:[button(locked?'Desbloquear con Premium':applied.contains(index)?'Postulación registrada':'Postularme',(){if(locked){setState(()=>section='Planes');return;}setState(()=>applied.add(index));_persist();notice('Postulación de demostración registrada localmente');}),button(saved.contains(index)?'Guardada':'Guardar',(){setState(()=>saved.contains(index)?saved.remove(index):saved.add(index));_persist();},outline:true)])])));}
-  Widget _jobCollection(String title,Set<int> ids)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading(title,'Actividad guardada en este navegador'),if(ids.isEmpty)panel(child:const Text('Todavía no tienes vacantes en esta sección.')),_responsiveCards(ids.where((i)=>i>=0&&i<jobs.length).map((i)=>_jobCard(i,jobs[i])).toList())]);
+  Widget _jobCollection(String title, Set<int> ids) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (title == 'Mis postulaciones') ...[
+        ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: AspectRatio(
+            aspectRatio: 2.8,
+            child: Image.memory(base64Decode(JoblinkBanners.postulate_aqui),
+              fit: BoxFit.cover, gaplessPlayback: true),
+          ),
+        ),
+        const SizedBox(height: 22),
+      ],
+      _heading(title, 'Actividad guardada en este navegador'),
+      if (ids.isEmpty)
+        panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Aún no tienes vacantes en esta sección.'),
+          const SizedBox(height: 12),
+          button('Explorar vacantes', () => setState(() => section = 'Vacantes')),
+        ])),
+      _responsiveCards(ids.where((i) => i >= 0 && i < jobs.length)
+          .map((i) => _jobCard(i, jobs[i])).toList()),
+    ],
+  );
   bool _courseUnlocked(String tier) => tier == 'Gratis' || planName == 'Premium' || (tier == 'Plus' && planName == 'Plus');
 
   Widget _responsiveCards(List<Widget> children, {double minWidth = 300}) => LayoutBuilder(
@@ -631,15 +715,15 @@ class _EmpleoPageState extends State<EmpleoPage> {
       _heading('Planes Joblink', 'Precios propuestos en MXN/mes · Suscripciones simuladas, sin cargos reales'),
       const SizedBox(height: 16),
       _responsiveCards([
-        _plan('Gratis', 0, ['Vacantes básicas', 'Perfil profesional', 'Postulaciones gratuitas', 'Cursos de nivel Gratis']),
-        _plan('Plus', 99, ['Todo lo de Gratis', 'Vacantes Plus', 'Cursos Gratis y Plus', 'Seguimiento de postulaciones']),
+        _plan('Gratis', 50, ['Vacantes básicas', 'Perfil profesional', 'Postulaciones básicas', 'Cursos de nivel Gratis']),
+        _plan('Plus', 99, ['Todo lo del plan inicial', 'Vacantes Plus', 'Cursos Gratis y Plus', 'Seguimiento de postulaciones']),
         _plan('Premium', 199, ['Todo lo de Plus', 'Vacantes Premium', 'Todos los cursos demo', 'Constancias de demostración']),
       ]),
       const SizedBox(height: 20),
       panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Mi suscripción: $planName', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         const SizedBox(height: 6),
-        Text(planName == 'Gratis' ? 'Sin suscripción de pago' : 'Activación demo: $planStart · Sin cobro ni renovación automática'),
+        Text(planName == 'Gratis' ? 'Plan inicial de demostración · precio de referencia: $50 MXN/mes' : 'Activación demo: $planStart · Sin cobro ni renovación automática'),
         if (planName != 'Gratis') ...[
           const SizedBox(height: 12),
           OutlinedButton.icon(onPressed: () => _confirmPlan('Gratis'), icon: const Icon(Icons.cancel_outlined), label: const Text('Cancelar suscripción demo')),
@@ -659,16 +743,16 @@ class _EmpleoPageState extends State<EmpleoPage> {
         const Icon(Icons.check_circle_outline, color: Color(0xFF15805B), size: 19), const SizedBox(width: 8), Expanded(child: Text(benefit)),
       ]))),
       const SizedBox(height: 12),
-      SizedBox(width: double.infinity, child: FilledButton(onPressed: selected ? null : () => _confirmPlan(title), child: Text(selected ? 'Plan activo' : title == 'Gratis' ? 'Cambiar a Gratis' : 'Elegir $title'))),
+      SizedBox(width: double.infinity, child: FilledButton(onPressed: selected ? null : () => _confirmPlan(title), child: Text(selected ? 'Plan activo' : title == 'Gratis' ? 'Elegir plan inicial' : 'Elegir $title'))),
     ]));
   }
 
   void _confirmPlan(String chosen) {
-    final cost = chosen == 'Plus' ? 99 : chosen == 'Premium' ? 199 : 0;
+    final cost = chosen == 'Plus' ? 99 : chosen == 'Premium' ? 199 : 50;
     showDialog<void>(context: context, builder: (ctx) => AlertDialog(
-      title: Text(chosen == 'Gratis' ? 'Cancelar plan de demostración' : 'Confirmar plan $chosen'),
+      title: Text(chosen == 'Gratis' ? 'Cambiar al plan inicial' : 'Confirmar plan $chosen'),
       content: Text(chosen == 'Gratis'
-          ? 'Regresarás al plan Gratis y perderás acceso a los beneficios Plus/Premium. Se conservará tu progreso local.'
+          ? 'Volverás al plan inicial ($50 MXN/mes de referencia) y conservarás tu progreso local. No se realizará ningún cobro.'
           : 'Precio ilustrativo: \$$cost MXN/mes. Esta activación es una simulación local: NO se solicitará tarjeta, NO se cobrará y NO habrá renovación automática.'),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Volver')),
