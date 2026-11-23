@@ -105,7 +105,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
     name = '${data['name'] ?? 'Usuario'}';
     companyAccount = data['company'] == true;
     planName = '${data['planName'] ?? (data['premium'] == true ? 'Premium' : 'Básico')}';
-    if (planName == 'Básico' || planName == 'Inicial') planName = 'Básico';
+    if (planName == 'Gratis' || planName == 'Básico' || planName == 'Inicial') planName = 'Básico';
     planStart = '${data['planStart'] ?? ''}';
     premium = planName != 'Básico';
     profileCity = '${data['profileCity'] ?? ''}';
@@ -476,15 +476,66 @@ class _EmpleoPageState extends State<EmpleoPage> {
       const SizedBox(height: 8), Text(subtitle, style: const TextStyle(color: Colors.black54, height: 1.4)),
     ])));
 
-  Widget _landingJob(_Job job) => SizedBox(height: 245, child: panel(child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(job.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-      const SizedBox(height: 8), Text(job.company, style: const TextStyle(color: Colors.black54)),
-      const SizedBox(height: 8), Text(job.city, style: const TextStyle(color: Colors.black54)),
-      const SizedBox(height: 10), Text('${job.salary} MXN/mes', style: const TextStyle(fontWeight: FontWeight.w600)),
-      const Spacer(),
-      TextButton.icon(onPressed: () => _openAuth(), icon: const Icon(Icons.arrow_forward), label: const Text('Ver y postularme')),
-    ])));
+  Widget _landingJob(_Job job) => SizedBox(
+    height: 370,
+    child: Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: Colors.white,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: const BorderSide(color: Color(0xFFE4E9F3)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        SizedBox(
+          height: 115,
+          child: Stack(fit: StackFit.expand, children: [
+            Image.memory(base64Decode(JoblinkBanners.postulate_aqui),
+              fit: BoxFit.cover, alignment: Alignment.center, gaplessPlayback: true),
+            Positioned(top: 10, right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(color: Colors.white,
+                  borderRadius: BorderRadius.circular(16)),
+                child: Text(job.basic ? 'BÁSICO' : 'PREMIUM',
+                  style: const TextStyle(color: _blue, fontSize: 11,
+                    fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ]),
+        ),
+        Expanded(child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(job.title, maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: _ink, fontWeight: FontWeight.w800,
+                fontSize: 17, height: 1.2)),
+            const SizedBox(height: 9),
+            Text(job.company, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.black54, fontSize: 13)),
+            const SizedBox(height: 5),
+            Text(job.city, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.black54, fontSize: 13)),
+            const SizedBox(height: 10),
+            Text('${job.salary} MXN/mes', maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+            const Spacer(),
+            SizedBox(width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => _openAuth(),
+                icon: const Icon(Icons.arrow_forward, size: 18),
+                label: const Text('Ver y postularme'),
+                style: FilledButton.styleFrom(backgroundColor: _blue,
+                  padding: const EdgeInsets.symmetric(vertical: 13)),
+              ),
+            ),
+          ]),
+        )),
+      ]),
+    ),
+  );
 
   Widget _landingPlan(String title, String price, String description) => SizedBox(height: 220, child: panel(child: Column(
     crossAxisAlignment: CrossAxisAlignment.start, children: [
