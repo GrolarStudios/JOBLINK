@@ -278,7 +278,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
             ] else ...[
               _landingTitle('Planes para crecer', 'Elige la experiencia que mejor se adapte a tus objetivos.'),
               _landingGrid([
-                _landingPlan('Inicial', '\$50', 'Vacantes básicas y cursos de nivel inicial'),
+                _landingPlan('Inicial', '\\$50', 'Vacantes básicas y cursos de nivel inicial'),
                 _landingPlan('Plus', '\$99', 'Más oportunidades y cursos'),
                 _landingPlan('Premium', '\$199', 'Acceso completo a beneficios demo'),
               ]),
@@ -723,7 +723,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
       panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Mi suscripción: $planName', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         const SizedBox(height: 6),
-        Text(planName == 'Gratis' ? 'Plan inicial de demostración · precio de referencia: $50 MXN/mes' : 'Activación demo: $planStart · Sin cobro ni renovación automática'),
+        Text(planName == 'Gratis' ? 'Plan inicial de demostración · precio de referencia: \$50 MXN/mes' : 'Activación demo: $planStart · Sin cobro ni renovación automática'),
         if (planName != 'Gratis') ...[
           const SizedBox(height: 12),
           OutlinedButton.icon(onPressed: () => _confirmPlan('Gratis'), icon: const Icon(Icons.cancel_outlined), label: const Text('Cancelar suscripción demo')),
@@ -752,7 +752,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
     showDialog<void>(context: context, builder: (ctx) => AlertDialog(
       title: Text(chosen == 'Gratis' ? 'Cambiar al plan inicial' : 'Confirmar plan $chosen'),
       content: Text(chosen == 'Gratis'
-          ? 'Volverás al plan inicial ($50 MXN/mes de referencia) y conservarás tu progreso local. No se realizará ningún cobro.'
+          ? 'Volverás al plan inicial (\$50 MXN/mes de referencia) y conservarás tu progreso local. No se realizará ningún cobro.'
           : 'Precio ilustrativo: \$$cost MXN/mes. Esta activación es una simulación local: NO se solicitará tarjeta, NO se cobrará y NO habrá renovación automática.'),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Volver')),
