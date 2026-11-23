@@ -48,7 +48,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
   String accountKey = '';
   Map<String, dynamic> _accounts = {};
   bool _loaded = false;
-  String planName = 'Gratis';
+  String planName = 'Básico';
   String planStart = '';
   String profileCity = '', profileEducation = '', profileSkills = '', profileBio = '', profilePhone = '', profileInterests = '';
   final Map<String, int> courseProgress = {};
@@ -104,9 +104,10 @@ class _EmpleoPageState extends State<EmpleoPage> {
     accountKey = key;
     name = '${data['name'] ?? 'Usuario'}';
     companyAccount = data['company'] == true;
-    planName = '${data['planName'] ?? (data['premium'] == true ? 'Premium' : 'Gratis')}';
+    planName = '${data['planName'] ?? (data['premium'] == true ? 'Premium' : 'Básico')}';
+    if (planName == 'Básico' || planName == 'Inicial') planName = 'Básico';
     planStart = '${data['planStart'] ?? ''}';
-    premium = planName != 'Gratis';
+    premium = planName != 'Básico';
     profileCity = '${data['profileCity'] ?? ''}';
     profileEducation = '${data['profileEducation'] ?? ''}';
     profileSkills = '${data['profileSkills'] ?? ''}';
@@ -154,7 +155,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
           ? (companyName.text.trim().isNotEmpty ? companyName.text.trim() : 'Empresa demo')
           : (fullName.text.trim().isNotEmpty ? fullName.text.trim() : mail.split('@').first);
       _accounts[key] = {'name': display, 'email': mail, 'company': companyAccount,
-        'premium': false, 'planName': 'Gratis', 'applied': <int>[], 'saved': <int>[]};
+        'premium': false, 'planName': 'Básico', 'applied': <int>[], 'saved': <int>[]};
     }
     setState(() => _activateAccount(key));
     password.clear();
@@ -278,7 +279,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
             ] else ...[
               _landingTitle('Planes para crecer', 'Elige la experiencia que mejor se adapte a tus objetivos.'),
               _landingGrid([
-                _landingPlan('Inicial', '\$50', 'Vacantes básicas y cursos de nivel inicial'),
+                _landingPlan('Básico', '\$50', 'Vacantes básicas y cursos de nivel inicial'),
                 _landingPlan('Plus', '\$99', 'Más oportunidades y cursos'),
                 _landingPlan('Premium', '\$199', 'Acceso completo a beneficios demo'),
               ]),
@@ -610,8 +611,97 @@ class _EmpleoPageState extends State<EmpleoPage> {
   Widget _heading(String title,String subtitle)=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(title,style:const TextStyle(fontSize:29,fontWeight:FontWeight.w800,color:_ink)),const SizedBox(height:5),Text(subtitle,style:const TextStyle(color:Colors.black54)),const SizedBox(height:22)]);
   Widget _dashboard()=>Column(crossAxisAlignment:CrossAxisAlignment.start,children:[panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('¡Hola, $name! 👋',style:const TextStyle(fontSize:29,fontWeight:FontWeight.w800)),const SizedBox(height:8),const Text('Tu próxima gran oportunidad puede comenzar aquí. No necesitas experiencia para dar el primer paso.'),const SizedBox(height:18),button('Explorar oportunidades',()=>setState(()=>section='Vacantes'))])),const SizedBox(height:18),Wrap(spacing:12,runSpacing:12,children:[_stat('Vacantes', '${jobs.length}',Icons.work_outline),_stat('Postulaciones','${applied.length}',Icons.send_outlined),_stat('Guardadas','${saved.length}',Icons.bookmark_outline)]),const SizedBox(height:25),_heading('Oportunidades para ti','Empleos de ejemplo seleccionados para jóvenes'),_responsiveCards(jobs.take(4).toList().asMap().entries.map((e)=>_jobCard(e.key,e.value)).toList()),const SizedBox(height:12),panel(child:Row(children:[const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('Desarrolla nuevas habilidades',style:TextStyle(fontWeight:FontWeight.bold,fontSize:18)),Text('Explora cursos y certificaciones de muestra')])),button('Ver cursos',()=>setState(()=>section='Certificaciones'))]))]);
   Widget _stat(String title,String value,IconData icon)=>SizedBox(width:190,child:panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Icon(icon,color:_blue),const SizedBox(height:12),Text(value,style:const TextStyle(fontSize:26,fontWeight:FontWeight.bold)),Text(title)])));
-  Widget _vacancies(){final entries=jobs.asMap().entries.where((e){final j=e.value;return (j.title+' '+j.company+' '+j.city).toLowerCase().contains(search.toLowerCase())&&(filter=='Todas'||filter=='Sin experiencia'&&j.firstJob||filter=='Gratuitas'&&j.basic||filter=='Premium'&&!j.basic);}).toList();return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Explora vacantes','Encuentra oportunidades según tus intereses y habilidades'),TextField(onChanged:(s)=>setState(()=>search=s),decoration:InputDecoration(prefixIcon:const Icon(Icons.search),hintText:'Puesto, empresa o ciudad',filled:true,fillColor:Colors.white,border:OutlineInputBorder(borderRadius:BorderRadius.circular(14)))),const SizedBox(height:14),Wrap(spacing:8,children:['Todas','Sin experiencia','Gratuitas','Premium'].map((f)=>ChoiceChip(label:Text(f),selected:filter==f,onSelected:(_)=>setState(()=>filter=f))).toList()),const SizedBox(height:15),if(entries.isEmpty)panel(child:const Text('No encontramos vacantes con esos filtros.')),_responsiveCards(entries.map((e)=>_jobCard(e.key,e.value)).toList())]);}
-  Widget _jobCard(int index,_Job job){final locked=!job.basic&&!premium;return Padding(padding:const EdgeInsets.only(bottom:12),child:panel(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Wrap(alignment:WrapAlignment.spaceBetween,spacing:12,runSpacing:8,children:[Text(job.title,style:const TextStyle(fontWeight:FontWeight.w800,fontSize:19)),if(!job.basic)const Chip(label:Text('PREMIUM'))]),const SizedBox(height:6),Text('${job.company}  •  ${job.city}',style:const TextStyle(color:Colors.black54)),const SizedBox(height:8),Text('${job.salary} MXN/mes (ejemplo)  •  ${job.type}'),if(job.firstJob)const Padding(padding:EdgeInsets.only(top:8),child:Text('✓ No requiere experiencia',style:TextStyle(color:Color(0xFF15805B),fontWeight:FontWeight.w600))),const SizedBox(height:15),Wrap(spacing:8,runSpacing:8,children:[button(locked?'Desbloquear con Premium':applied.contains(index)?'Postulación registrada':'Postularme',(){if(locked){setState(()=>section='Planes');return;}setState(()=>applied.add(index));_persist();notice('Postulación de demostración registrada localmente');}),button(saved.contains(index)?'Guardada':'Guardar',(){setState(()=>saved.contains(index)?saved.remove(index):saved.add(index));_persist();},outline:true)])])));}
+  Widget _vacancies(){final entries=jobs.asMap().entries.where((e){final j=e.value;return (j.title+' '+j.company+' '+j.city).toLowerCase().contains(search.toLowerCase())&&(filter=='Todas'||filter=='Sin experiencia'&&j.firstJob||filter=='Básicas'&&j.basic||filter=='Premium'&&!j.basic);}).toList();return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[_heading('Explora vacantes','Encuentra oportunidades según tus intereses y habilidades'),TextField(onChanged:(s)=>setState(()=>search=s),decoration:InputDecoration(prefixIcon:const Icon(Icons.search),hintText:'Puesto, empresa o ciudad',filled:true,fillColor:Colors.white,border:OutlineInputBorder(borderRadius:BorderRadius.circular(14)))),const SizedBox(height:14),Wrap(spacing:8,children:['Todas','Sin experiencia','Básicas','Premium'].map((f)=>ChoiceChip(label:Text(f),selected:filter==f,onSelected:(_)=>setState(()=>filter=f))).toList()),const SizedBox(height:15),if(entries.isEmpty)panel(child:const Text('No encontramos vacantes con esos filtros.')),_responsiveCards(entries.map((e)=>_jobCard(e.key,e.value)).toList())]);}
+  Widget _jobCard(int index, _Job job) {
+    final locked = !job.basic && !premium;
+    final appliedAlready = applied.contains(index);
+    final savedAlready = saved.contains(index);
+    return SizedBox(
+      height: 495,
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        elevation: 0,
+        color: Colors.white,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: Color(0xFFE4E9F3)),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          SizedBox(
+            height: 118,
+            child: Stack(fit: StackFit.expand, children: [
+              Image.memory(
+                base64Decode(JoblinkBanners.postulate_aqui),
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                gaplessPlayback: true,
+              ),
+              Positioned(
+                right: 10,
+                top: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(job.basic ? 'BÁSICO' : 'PREMIUM',
+                    style: const TextStyle(color: _blue, fontSize: 11, fontWeight: FontWeight.w800)),
+                ),
+              ),
+            ]),
+          ),
+          Expanded(child: Padding(
+            padding: const EdgeInsets.fromLTRB(17, 16, 17, 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(job.title, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: _ink, fontWeight: FontWeight.w800, fontSize: 19, height: 1.15)),
+              const SizedBox(height: 9),
+              Text('${job.company} • ${job.city}', maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.black54, fontSize: 13)),
+              const SizedBox(height: 10),
+              Text('${job.salary} MXN/mes (ejemplo)', maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 5),
+              Text(job.type, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.black54)),
+              const SizedBox(height: 9),
+              if (job.firstJob)
+                const Text('✓ No requiere experiencia', maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Color(0xFF15805B), fontSize: 13, fontWeight: FontWeight.w700)),
+              const Spacer(),
+              SizedBox(width: double.infinity, child: FilledButton(
+                onPressed: () {
+                  if (locked) { setState(() => section = 'Planes'); return; }
+                  setState(() => applied.add(index));
+                  _persist();
+                  notice('Postulación de demostración registrada localmente');
+                },
+                style: FilledButton.styleFrom(backgroundColor: _blue,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13)),
+                child: Text(locked ? 'Desbloquear con Premium' : appliedAlready ? 'Postulación registrada' : 'Postularme',
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
+              )),
+              const SizedBox(height: 7),
+              SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                onPressed: () {
+                  setState(() => savedAlready ? saved.remove(index) : saved.add(index));
+                  _persist();
+                },
+                icon: Icon(savedAlready ? Icons.bookmark : Icons.bookmark_border, size: 18),
+                label: Text(savedAlready ? 'Guardada' : 'Guardar'),
+              )),
+            ]),
+          )),
+        ]),
+      ),
+    );
+  }
+
   Widget _jobCollection(String title, Set<int> ids) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -715,18 +805,18 @@ class _EmpleoPageState extends State<EmpleoPage> {
       _heading('Planes Joblink', 'Precios propuestos en MXN/mes · Suscripciones simuladas, sin cargos reales'),
       const SizedBox(height: 16),
       _responsiveCards([
-        _plan('Gratis', 50, ['Vacantes básicas', 'Perfil profesional', 'Postulaciones básicas', 'Cursos de nivel Gratis']),
-        _plan('Plus', 99, ['Todo lo del plan inicial', 'Vacantes Plus', 'Cursos Gratis y Plus', 'Seguimiento de postulaciones']),
+        _plan('Básico', 50, ['Vacantes básicas', 'Perfil profesional', 'Postulaciones básicas', 'Cursos de nivel básico']),
+        _plan('Plus', 99, ['Todo lo del plan básico', 'Vacantes Plus', 'Cursos Básico y Plus', 'Seguimiento de postulaciones']),
         _plan('Premium', 199, ['Todo lo de Plus', 'Vacantes Premium', 'Todos los cursos demo', 'Constancias de demostración']),
       ]),
       const SizedBox(height: 20),
       panel(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Mi suscripción: $planName', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         const SizedBox(height: 6),
-        Text(planName == 'Gratis' ? 'Plan inicial de demostración · precio de referencia: \$50 MXN/mes' : 'Activación demo: $planStart · Sin cobro ni renovación automática'),
-        if (planName != 'Gratis') ...[
+        Text(planName == 'Básico' ? 'Plan básico de demostración · precio de referencia: \$50 MXN/mes' : 'Activación demo: $planStart · Sin cobro ni renovación automática'),
+        if (planName != 'Básico') ...[
           const SizedBox(height: 12),
-          OutlinedButton.icon(onPressed: () => _confirmPlan('Gratis'), icon: const Icon(Icons.cancel_outlined), label: const Text('Cancelar suscripción demo')),
+          OutlinedButton.icon(onPressed: () => _confirmPlan('Básico'), icon: const Icon(Icons.cancel_outlined), label: const Text('Cancelar suscripción demo')),
         ],
       ])),
     ]);
@@ -743,15 +833,15 @@ class _EmpleoPageState extends State<EmpleoPage> {
         const Icon(Icons.check_circle_outline, color: Color(0xFF15805B), size: 19), const SizedBox(width: 8), Expanded(child: Text(benefit)),
       ]))),
       const SizedBox(height: 12),
-      SizedBox(width: double.infinity, child: FilledButton(onPressed: selected ? null : () => _confirmPlan(title), child: Text(selected ? 'Plan activo' : title == 'Gratis' ? 'Elegir plan inicial' : 'Elegir $title'))),
+      SizedBox(width: double.infinity, child: FilledButton(onPressed: selected ? null : () => _confirmPlan(title), child: Text(selected ? 'Plan activo' : title == 'Básico' ? 'Elegir plan básico' : 'Elegir $title'))),
     ]));
   }
 
   void _confirmPlan(String chosen) {
     final cost = chosen == 'Plus' ? 99 : chosen == 'Premium' ? 199 : 50;
     showDialog<void>(context: context, builder: (ctx) => AlertDialog(
-      title: Text(chosen == 'Gratis' ? 'Cambiar al plan inicial' : 'Confirmar plan $chosen'),
-      content: Text(chosen == 'Gratis'
+      title: Text(chosen == 'Básico' ? 'Cambiar al plan básico' : 'Confirmar plan $chosen'),
+      content: Text(chosen == 'Básico'
           ? 'Volverás al plan inicial (\$50 MXN/mes de referencia) y conservarás tu progreso local. No se realizará ningún cobro.'
           : 'Precio ilustrativo: \$$cost MXN/mes. Esta activación es una simulación local: NO se solicitará tarjeta, NO se cobrará y NO habrá renovación automática.'),
       actions: [
@@ -760,7 +850,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
           setState(() {
             planName = chosen;
             premium = chosen != 'Gratis';
-            planStart = chosen == 'Gratis' ? '' : DateTime.now().toLocal().toIso8601String().substring(0, 10);
+            planStart = chosen == 'Básico' ? '' : DateTime.now().toLocal().toIso8601String().substring(0, 10);
           });
           _persist();
           Navigator.pop(ctx);
