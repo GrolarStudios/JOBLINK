@@ -278,7 +278,7 @@ class _EmpleoPageState extends State<EmpleoPage> {
             ] else ...[
               _landingTitle('Planes para crecer', 'Elige la experiencia que mejor se adapte a tus objetivos.'),
               _landingGrid([
-                _landingPlan('Inicial', '\\$50', 'Vacantes básicas y cursos de nivel inicial'),
+                _landingPlan('Inicial', '\$50', 'Vacantes básicas y cursos de nivel inicial'),
                 _landingPlan('Plus', '\$99', 'Más oportunidades y cursos'),
                 _landingPlan('Premium', '\$199', 'Acceso completo a beneficios demo'),
               ]),
